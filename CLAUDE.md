@@ -33,8 +33,11 @@ docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/pla
 
 - **스킬**: 디렉토리 + `SKILL.md` (예: `common/skills/spec-writer/SKILL.md`).
   하위 리소스가 있으면 같은 디렉토리에 둔다 (예: `data-generator/types/`).
-- **에이전트**: 평면 `.md` 파일 (예: `common/agents/analyzer.md`). 디렉토리로 감싸지 않는다.
-- 현재는 Claude용 `.md`만 관리한다. Codex `.toml`은 향후 지원 예정.
+- **에이전트**: 평면 파일 (예: `common/agents/analyzer.md`). 디렉토리로 감싸지 않는다.
+  플랫폼은 확장자로 구분한다 — **`.md`는 Claude용, `.toml`은 Codex용**. 같은 역할의
+  두 버전을 같은 폴더에 나란히 두고(예: `analyzer.md` + `analyzer.toml`) 함께 유지한다.
+- **스킬은 플랫폼 공유**다. Claude·Codex 모두 같은 `SKILL.md`(마크다운)를 쓰므로
+  별도 Codex 사본을 만들지 않는다.
 
 ## 동명 스킬 네이밍 규칙
 
@@ -54,6 +57,5 @@ docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/pla
 
 ## 향후 계획
 
-- Codex용 `.toml` 에이전트 지원
 - Unity, Next.js 스킬·에이전트 수집
-- 기술 스택을 고르면 대상 프로젝트 `.claude/`로 자동 세팅해주는 배포 도구
+- 기술 스택을 고르면 대상 프로젝트의 `.claude/`·`.codex/`로 자동 세팅해주는 배포 도구

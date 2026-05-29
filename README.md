@@ -57,6 +57,9 @@ docs/        설계·계획 문서
 
 ## 에이전트 인덱스
 
+각 에이전트는 Claude용 `.md`와 Codex용 `.toml` 두 버전이 같은 폴더에 함께 있다
+(예: `analyzer.md` + `analyzer.toml`). 아래 표는 역할 기준이며 두 형식에 공통이다.
+
 ### common/agents
 
 | 에이전트 | 설명 | 모델 |
@@ -88,19 +91,27 @@ docs/        설계·계획 문서
 
 ## 사용법
 
-현재는 필요한 스킬·에이전트 폴더를 대상 프로젝트의 `.claude/skills/`,
-`.claude/agents/`로 직접 복사해서 쓴다.
+현재는 필요한 스킬·에이전트를 대상 프로젝트로 직접 복사해서 쓴다. 스킬(`SKILL.md`)은
+플랫폼 공유이고, 에이전트는 Claude면 `.md`, Codex면 `.toml`을 복사한다.
 
 ```bash
-# 예: 새 Flutter 프로젝트에 공통 + Flutter 스킬 세팅
-cp -R common/skills/*   <project>/.claude/skills/
-cp -R common/agents/*   <project>/.claude/agents/
-cp -R flutter/skills/*  <project>/.claude/skills/
-cp -R flutter/agents/*  <project>/.claude/agents/
+# 예: 새 Flutter 프로젝트에 Claude(.md) 기준으로 세팅
+cp -R common/skills/*        <project>/.claude/skills/
+cp    common/agents/*.md     <project>/.claude/agents/
+cp -R flutter/skills/*       <project>/.claude/skills/
+cp    flutter/agents/*.md    <project>/.claude/agents/
+```
+
+```bash
+# 예: 같은 프로젝트에 Codex(.toml)도 세팅
+#   스킬은 .agents/skills 에서 공유, 에이전트는 .codex/agents 에 toml
+cp -R common/skills/*        <project>/.agents/skills/
+cp    common/agents/*.toml   <project>/.codex/agents/
+cp -R flutter/skills/*       <project>/.agents/skills/
+cp    flutter/agents/*.toml  <project>/.codex/agents/
 ```
 
 ## 향후 계획
 
-- Codex용 `.toml` 에이전트 지원
 - Unity, Next.js 스킬·에이전트 수집
-- 기술 스택을 고르면 자동으로 대상 프로젝트에 세팅해주는 배포 도구
+- 기술 스택을 고르면 자동으로 대상 프로젝트(`.claude/`·`.codex/`)에 세팅해주는 배포 도구
