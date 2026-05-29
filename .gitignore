@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Claude Code 로컬 세션 설정 (개인별)
+.claude/settings.local.json
+
+# 에디터
+.idea/
+.vscode/
+*.swp
