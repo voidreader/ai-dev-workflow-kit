@@ -4,8 +4,10 @@
 한곳에 모아 관리하는 저장소다. 새 프로젝트를 시작할 때 사용하는 기술 스택에 맞춰
 필요한 스킬·에이전트를 가져다 쓰는 것이 목표다.
 
-현재는 Flutter 기반 `band-of-mercenaries` 프로젝트의 스킬·에이전트를 수집한 단계로,
-Claude(`.md`)와 Codex(`.toml`) 양쪽 에이전트를 모두 담고 있다.
+현재는 Flutter 기반 `band-of-mercenaries`·`pace-counter` 프로젝트의 스킬·에이전트를
+수집한 단계로, Claude(`.md`)와 Codex(`.toml`) 양쪽 에이전트를 모두 담고 있다.
+`pace-counter`에서 가져온 Flutter↔Figma 동기화 워크플로우(디자인시스템 export +
+픽셀 painter 파이프라인)도 `flutter/`에 포함돼 있다.
 
 ## 디렉토리 구조
 
@@ -45,6 +47,8 @@ docs/        설계·계획 문서
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
 | implement-agent | planner→coder→verifier→flutter-reviewer→dart-build-resolver 파이프라인 조율 | Opus |
+| flutter-figma-export | Flutter 위젯·토큰·스크린을 게이트 승인 거쳐 Figma로 export (에이전트 5종 조율) | Opus |
+| pixel-painter-figma-sync | CustomPainter 픽셀아트를 SSOT 한 곳에서 Flutter·Figma가 동기화 | Opus |
 
 ### examples/band-of-mercenaries/skills
 
@@ -80,6 +84,11 @@ docs/        설계·계획 문서
 |---|---|---|
 | flutter-reviewer | Flutter/Dart 코드 품질 검증 (읽기 전용) | Opus |
 | dart-build-resolver | Dart 빌드·정적분석·의존성 에러 해결 | Sonnet |
+| flutter-figma-designer | 위젯→컴포넌트/variant 분류·네이밍·스크린 청사진 판단 | Opus |
+| flutter-widget-analyzer | lib/ 위젯 사용 빈도 집계 (widget-usage.json) | Sonnet |
+| flutter-token-extractor | 색/타이포/간격/radius 리터럴 추출·클러스터 + 리팩터 PR 계획 | Sonnet |
+| flutter-figma-writer | 승인된 카탈로그·청사진을 Figma로 idempotent push | Sonnet |
+| flutter-figma-screen-renderer | 화면 1개를 편집 레이어+캡처 레이어로 Figma 렌더 | Opus |
 
 ## 동명 스킬 네이밍 규칙
 
