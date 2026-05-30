@@ -14,24 +14,25 @@
 ```
 common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
+unity/       Unity 전용 (skills/, agents/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
 docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/plans)
 ```
 
-추후 `unity/`, `nextjs/` 가 같은 구조로 추가된다.
+추후 `nextjs/` 가 같은 구조로 추가된다.
 
 ## 카테고리 분류 기준
 
 새 스킬·에이전트를 추가할 때 아래 기준으로 위치를 정한다.
 
 - **common** — 스택과 무관하게 동작하는 워크플로우(기획→명세→구현→마무리).
-- **flutter** (또는 추후 unity/nextjs) — 특정 스택/언어에 종속된 것.
+- **flutter / unity** (또는 추후 nextjs) — 특정 스택/언어에 종속된 것.
 - **examples** — 특정 게임/도메인에 강하게 종속되어 그대로 재사용하기 어려운 것.
   새 스킬을 만들 때 참고용으로만 둔다.
 
 ## 파일 형식 규칙
 
-- **스킬**: 디렉토리 + `SKILL.md` (예: `common/skills/spec-writer/SKILL.md`).
+- **스킬**: 디렉토리 + `SKILL.md` (예: `common/skills/spec-pipeline/SKILL.md`).
   하위 리소스가 있으면 같은 디렉토리에 둔다 (예: `data-generator/types/`).
 - **에이전트**: 평면 파일 (예: `common/agents/analyzer.md`). 디렉토리로 감싸지 않는다.
   플랫폼은 확장자로 구분한다 — **`.md`는 Claude용, `.toml`은 Codex용**. 같은 역할의

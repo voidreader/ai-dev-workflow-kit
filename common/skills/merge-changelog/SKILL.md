@@ -54,14 +54,14 @@ Recommended Model : Claude Sonnet
 ```markdown
 ## 2026-03-20
 
-### 퀘스트 시스템 개선
+### 로그인 기능 개선
 
-- 파견 비용 계산 로직 수정
-- 퀘스트 갱신 주기 조정
+- 토큰 갱신 로직 수정
+- 세션 만료 처리 개선
 
 ### 버그 수정
 
-- 이동 중 퀘스트 파견 시 크래시 수정
+- 특정 조건에서 발생하던 크래시 수정
 ```
 
 ### 4. Fragment 파일 삭제
@@ -106,8 +106,8 @@ git commit -m "docs: CHANGELOG 합산 — {합산된 날짜 목록}"
 
 파일명: `YYYYMMDD_{scope}.md`
 
-- 예: `20260320_quest-system.md`
-- 예: `20260320_mercenary-null-fix.md`
+- 예: `20260320_login-improvement.md`
+- 예: `20260320_crash-fix.md`
 
 내용 포맷:
 
