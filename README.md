@@ -45,6 +45,7 @@ docs/        설계·계획 문서
 | verify-spec | 명세서가 기획 의도를 반영했는지 5개 항목 검증 | Opus |
 | docs-writer | 문서 작성·검토·편집 | Sonnet |
 | merge-changelog | changelog fragment 병합 → CHANGELOG.md | Sonnet |
+| milestone-runner | 설정 주입형 N단계 체크포인트 파이프라인 러너 (`pipeline.config.md`로 단계 정의, 상태파일 재개) | Opus |
 | google-sheets-safe-edit | Google Sheets write 도구 호출 전 백업·프리뷰·승인 게이트 | Sonnet |
 
 ### flutter/skills
@@ -92,7 +93,7 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | content-designer | 게임 콘텐츠 기획·갭 분석 | Opus |
 | balance-designer | 게임 밸런스·수식·경제 시뮬레이션 (Supabase) | Opus |
 | data-generator | 콘텐츠 데이터 벌크 생성 → CSV → Supabase | Opus |
-| milestone-runner | 마일스톤 4페이즈 체크포인트 진행 | Opus |
+| milestone-runner | 마일스톤 4페이즈 체크포인트 진행 (`common/milestone-runner` 엔진의 채운 예시 — config 작성 레퍼런스) | Opus |
 
 ### examples/unity-cat-clicker/skills
 
