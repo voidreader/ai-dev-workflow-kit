@@ -43,6 +43,7 @@ docs/        설계·계획 문서
 
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
+| plan-writer | 아이디어를 협업 대화로 다듬어 '기획서' 작성 (`Docs/plans/`) → spec-writer로 인계. 비주얼 컴패니언 포함 | Opus |
 | spec-pipeline | spec-writer → verify-spec 오케스트레이션 (런타임에 배포된 스택 버전 사용) | Sonnet |
 | verify-spec | 명세서가 기획 의도를 반영했는지 5개 항목 검증 | Opus |
 | docs-writer | 문서 작성·검토·편집 | Sonnet |
