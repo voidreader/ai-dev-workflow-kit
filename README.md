@@ -214,7 +214,7 @@ cp -R common/skills/*        <project>/.agents/skills/
 cp -R flutter/skills/*       <project>/.agents/skills/
 cp    flutter/agents/*.toml  <project>/.codex/agents/
 ```
-(에이전트는 현재 스택 폴더에만 있다. `common/agents/`는 비어 있다.)
+(공통 에이전트 `planner`/`coder`/`verifier`는 `common/agents/`에, 스택 전용 에이전트는 각 스택 폴더(`flutter/agents`·`unity/agents`·`backend/agents`)에 있다. 대상 스택에 맞는 것을 함께 복사한다.)
 
 ## 향후 계획
 
