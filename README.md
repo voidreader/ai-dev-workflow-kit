@@ -20,6 +20,7 @@ common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
 unity/       Unity 전용 (skills/, agents/)
 nextjs/      Next.js 전용 (skills/, hooks/)
+backend/     Node.js/NestJS 전용 (agents/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
 docs/        설계·계획 문서
 ```
@@ -30,6 +31,7 @@ docs/        설계·계획 문서
 - **flutter** — Flutter/Dart에 종속된 스킬·에이전트.
 - **unity** — Unity/C#에 종속된 스킬·에이전트.
 - **nextjs** — Next.js(App Router)에 종속된 스킬·훅.
+- **backend** — Node.js/NestJS에 종속된 스킬·에이전트.
 - **examples** — 특정 게임/도메인(용병단 전략 게임 + Supabase, 고양이 클리커 등)에
   강하게 종속되어 그대로는 재사용하기 어려운 스킬. 새 스킬을 만들 때 참고용으로 둔다.
 
@@ -39,7 +41,8 @@ docs/        설계·계획 문서
 
 스택 무관 범용 워크플로우만 둔다. `implement-spec`·`spec-writer`·`finalize-feature`·
 `finalize-minor-task` 등 스택마다 내용이 달라지는 것은 `flutter/`·`unity/` 스택
-폴더에 둔다.
+폴더에 둔다. `implement-agent`는 골격이고 스택별 검증은 `adapters/<stack>.md`가 선언한다
+(flutter/unity/backend 제공).
 
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
@@ -50,6 +53,7 @@ docs/        설계·계획 문서
 | merge-changelog | changelog fragment 병합 → CHANGELOG.md | Sonnet |
 | milestone-runner | 설정 주입형 N단계 체크포인트 파이프라인 러너 (`pipeline.config.md`로 단계 정의, 상태파일 재개) | Opus |
 | google-sheets-safe-edit | Google Sheets write 도구 호출 전 백업·프리뷰·승인 게이트 | Sonnet |
+| implement-agent | 스택 어댑터를 로드해 planner→coder→verifier→(어댑터 지정)reviewer 파이프라인을 subagent-driven으로 조율. 검증 게이트(TDD/빌드)는 어댑터가 선언 | Opus |
 
 ### flutter/skills
 
@@ -118,9 +122,15 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 
 ### common/agents
 
-현재 비어 있다. `analyzer`/`architect`/`coder`/`planner`/`verifier`는 내부 예시가
-스택 종속이라 `flutter/agents`·`unity/agents`로 옮겼다. 향후 진짜 스택 무관 에이전트가
-생기면 여기 둔다.
+`analyzer`/`architect`는 내부 예시가 스택 종속이라 `flutter/agents`·`unity/agents`에
+있다. 아래 에이전트는 `implement-agent` 스킬의 골격 파이프라인을 구성하는 스택 중립
+버전이다 (스택별 세부 동작은 어댑터가 주입).
+
+| 에이전트 | 설명 | 모델 |
+|---|---|---|
+| planner | 명세 분석 + 구현 계획 통합 (스택 중립, 어댑터 컨텍스트 주입) | Opus |
+| coder | 계획의 개별 task 구현 (TDD 모드 시 RED 테스트 직접 작성) | Sonnet |
+| verifier | 구현이 명세를 충족하는지 검증 (스택 중립) | Opus |
 
 ### flutter/agents
 
@@ -156,6 +166,12 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | coder | 계획서의 개별 태스크 구현 (Unity 규칙 스킬 preload) | Sonnet |
 | planner | analyzer + architect 통합 단일 패스 (`.md`만 존재) | Opus |
 | verifier | 구현이 명세를 충족하는지 검증 | Opus |
+
+### backend/agents
+
+| 에이전트 | 설명 | 모델 |
+|---|---|---|
+| backend-reviewer | Node.js/NestJS 코드 품질 검증 (보안·레이어·비동기·타입·테스트 품질) | Opus |
 
 ## 훅 인덱스
 
