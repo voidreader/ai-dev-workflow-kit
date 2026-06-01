@@ -15,11 +15,10 @@
 common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
 unity/       Unity 전용 (skills/, agents/)
+nextjs/      Next.js 전용 (skills/, hooks/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
 docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/plans)
 ```
-
-추후 `nextjs/` 가 같은 구조로 추가된다.
 
 ## 카테고리 분류 기준
 
@@ -39,6 +38,10 @@ docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/pla
   두 버전을 같은 폴더에 나란히 두고(예: `analyzer.md` + `analyzer.toml`) 함께 유지한다.
 - **스킬은 플랫폼 공유**다. Claude·Codex 모두 같은 `SKILL.md`(마크다운)를 쓰므로
   별도 Codex 사본을 만들지 않는다.
+- **훅**: 스택 폴더 아래 `hooks/<훅-이름>/` 디렉토리에 둔다 (예:
+  `nextjs/hooks/design-doc-sync-reminder/`). 훅은 모델이 아니라 하네스가 실행하므로,
+  공유 스크립트와 함께 플랫폼별 설치 스니펫(`install.claude.json`,
+  `install.codex.json`)과 동작·설치법을 적은 `README.md`를 같은 폴더에 둔다.
 
 ## 동명 스킬 네이밍 규칙
 
@@ -58,5 +61,5 @@ docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/pla
 
 ## 향후 계획
 
-- Unity, Next.js 스킬·에이전트 수집
+- Next.js 스킬·에이전트·훅 추가 수집 (현재 design-inventory 스킬 + 동기화 훅 보유)
 - 기술 스택을 고르면 대상 프로젝트의 `.claude/`·`.codex/`로 자동 세팅해주는 배포 도구

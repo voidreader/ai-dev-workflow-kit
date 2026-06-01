@@ -10,6 +10,8 @@ Codex(`.toml`) 양쪽 에이전트를 모두 담고 있다. `pace-counter`에서
 Flutter↔Figma 동기화 워크플로우(디자인시스템 export + 픽셀 painter 파이프라인)는
 `flutter/`에, `UnityCatClicker`에서 가져온 Unity 워크플로우(UGUI·Figma 변환,
 프리팹 자동화, Unity 특화 명세·구현 파이프라인)는 `unity/`에 포함돼 있다.
+Next.js 기반 `AnonymousMessageWeb`에서 가져온 디자인 SSOT 워크플로우(5종 인벤토리
+문서 + 코드↔Figma 핸드오프)와 문서 동기화 훅은 `nextjs/`에 있다.
 
 ## 디렉토리 구조
 
@@ -17,17 +19,17 @@ Flutter↔Figma 동기화 워크플로우(디자인시스템 export + 픽셀 pai
 common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
 unity/       Unity 전용 (skills/, agents/)
+nextjs/      Next.js 전용 (skills/, hooks/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
 docs/        설계·계획 문서
 ```
-
-추후 `nextjs/` 가 같은 구조로 추가된다.
 
 ## 카테고리
 
 - **common** — 기획→명세→구현→마무리 전 과정을 다루는 스택 무관 워크플로우.
 - **flutter** — Flutter/Dart에 종속된 스킬·에이전트.
 - **unity** — Unity/C#에 종속된 스킬·에이전트.
+- **nextjs** — Next.js(App Router)에 종속된 스킬·훅.
 - **examples** — 특정 게임/도메인(용병단 전략 게임 + Supabase, 고양이 클리커 등)에
   강하게 종속되어 그대로는 재사용하기 어려운 스킬. 새 스킬을 만들 때 참고용으로 둔다.
 
@@ -85,6 +87,12 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | unity-ugui-ui | UGUI(UI_View/UI_Popup) 기반 UI 신규 생성·수정 | — |
 | figma-to-ugui | Figma 레이어 → UGUI(UI_View/UI_Popup + Enum 바인딩) 변환 | — |
 | automate-unity-task | unity_tasks.md → Unity Editor 프리팹 자동 생성 스크립트 작성 | Opus |
+
+### nextjs/skills
+
+| 스킬 | 설명 | 권장 모델 |
+|---|---|---|
+| design-inventory | 화면·구성요소·상태·토큰을 5종 SSOT 문서로 유지하고 코드↔Figma 핸드오프 (App Router) | Sonnet |
 
 ### examples/band-of-mercenaries/skills
 
@@ -147,6 +155,19 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | coder | 계획서의 개별 태스크 구현 (Unity 규칙 스킬 preload) | Sonnet |
 | planner | analyzer + architect 통합 단일 패스 (`.md`만 존재) | Opus |
 | verifier | 구현이 명세를 충족하는지 검증 | Opus |
+
+## 훅 인덱스
+
+`PostToolUse` 등 하네스가 실행하는 자동 훅. 스킬·에이전트와 달리 모델이 아니라
+하네스가 트리거하므로, 대상 프로젝트의 설정 파일(`.claude/settings.json`,
+`.codex/hooks.json`)에 설치 스니펫을 병합해 쓴다. 각 훅 폴더의 `README.md`에 동작과
+플랫폼별 설치법이 있다.
+
+### nextjs/hooks
+
+| 훅 | 설명 | 플랫폼 |
+|---|---|---|
+| design-doc-sync-reminder | 화면/구성요소 파일 수정 시 `Docs/design/` SSOT 문서 동기화 점검 리마인더 (`design-inventory` 스킬과 짝) | Claude + Codex |
 
 ## 동명 스킬 네이밍 규칙
 

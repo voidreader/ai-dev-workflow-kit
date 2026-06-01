@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // .tool_response.filePath // empty'); case \"$f\" in *.test.ts|*.test.tsx) exit 0;; esac; case \"$f\" in */src/app/*page.tsx|*/src/app/*route.ts|*/src/app/*route.tsx|*/src/app/*layout.tsx|*/src/app/*loading.tsx|*/src/app/*error.tsx|*/src/app/*opengraph-image.tsx|*/src/features/*.tsx) printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"[문서 동기화 점검] 방금 화면/구성요소 파일을 수정했습니다. 화면을 추가·삭제·이동했거나 구성요소·상태·토큰을 바꿨다면, 같은 작업 안에서 Docs/design/ 문서(page-inventory, component-inventory, interaction-states, design-tokens, figma-handoff)의 갱신 필요 여부를 확인하세요. 규칙은 AGENTS.md의 「화면 변경 시 문서 동기화 규칙」 참고.\"}}';; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
