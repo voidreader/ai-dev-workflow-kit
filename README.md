@@ -101,13 +101,16 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 
 ### backend/skills
 
-`spec-writer`는 같은 역할의 Flutter·Unity 버전이 각 스택 폴더에도 있는 동명 스킬이다
-(동명 스킬 네이밍 규칙 참고). 구현은 `common/implement-agent`(backend 어댑터, TDD
-모드)로 이어진다 — backend 전용 `implement-spec`은 없다.
+`spec-writer`·`finalize-feature`·`finalize-minor-task`는 같은 역할의 Flutter·Unity
+버전이 각 스택 폴더에도 있는 동명 스킬이다 (동명 스킬 네이밍 규칙 참고). 구현은
+`common/implement-agent`(backend 어댑터, TDD 모드)로 이어진다 — backend 전용
+`implement-spec`은 없다. finalize 스킬은 사용자 선호에 맞춰 커밋에 AI 트레일러를 넣지 않는다.
 
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
 | spec-writer | 요구 문서 → NestJS/Node.js 개발 명세서 생성. 테스트 명세(TDD) 포함, DB 변경 시 마이그레이션 SQL을 별도 파일로 작성(직접 적용 안 함), 결정 지점은 장단점과 함께 제시 | Opus |
+| finalize-feature | 기능 마무리 + 문서 갱신 + 커밋 (tsc/테스트/마이그레이션 적용·환경변수 체크리스트) | Sonnet |
+| finalize-minor-task | 명세 없는 소규모 작업 마무리·아카이브 | Sonnet |
 
 ### examples/band-of-mercenaries/skills
 
