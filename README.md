@@ -143,8 +143,8 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | 에이전트 | 설명 | 모델 |
 |---|---|---|
 | planner | 명세 분석 + 구현 계획 통합 (스택 중립, 어댑터 컨텍스트 주입) | Opus |
-| coder | 계획의 개별 task 구현 (TDD 모드 시 RED 테스트 직접 작성) | Sonnet |
-| verifier | 구현이 명세를 충족하는지 검증 (스택 중립) | Opus |
+| coder | 계획의 개별 task 구현 (TDD 모드 시 RED→GREEN 자체 수행 + 핸드오프 전 자가 코드 리뷰) | Sonnet |
+| verifier | 구현이 명세를 충족하는지 검증 (스택 중립) | Sonnet 기본 (복잡 task만 Opus) |
 
 ### flutter/agents
 

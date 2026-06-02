@@ -44,11 +44,12 @@ Recommended Model : Claude Opus
    미래 결정으로 컨텍스트가 오염되고 scope가 번지는 것을 막기 위함이다. (코드 파일·
    CLAUDE.md 같은 코드베이스 Read는 coder가 자유롭게 해도 된다. 막는 것은 plan/명세 통독뿐.)
 ② 검증 게이트 — 어댑터의 `검증모드`로 분기:
-   - tdd:
-     ①-a coder가 실패 테스트 먼저 작성
-     ②-a `게이트 명령`을 `작업 디렉토리`에서 실행 → RED(실패) 확인. 통과해버리면 coder에 반려.
-     ①-b coder가 최소 구현
-     ②-b `게이트 명령` 실행 → GREEN(통과) 확인.
+   - tdd: **coder가 ① 단일 호출 안에서 RED→GREEN 사이클을 자체 수행한다** (실패 테스트
+     작성 → 게이트로 RED 확인 → 최소 구현 → GREEN). main은 coder를 RED/GREEN 단계로
+     쪼개 두 번 호출하지 않는다 — coder가 자기 컨텍스트에서 끝내므로 cold start·재탐색이
+     없다. coder 완료 보고(RED→GREEN 기록 포함)를 받은 뒤, main이 `게이트 명령`을
+     `작업 디렉토리`에서 **1회만 실행해 GREEN을 최종 확인**한다. 실패하면 결과를 coder에
+     반려한다(재시도 규칙). coder 보고에 RED 단계가 없으면(테스트 선작성 누락) 반려한다.
    - build-gate:
      ① coder 구현
      ② `게이트 명령` 실행 → PASS 확인. 실패 시 `build resolver`가 있으면 위임, 없으면 coder 재호출.
@@ -61,6 +62,14 @@ Recommended Model : Claude Opus
      "없음 — main 직접 리뷰"면 main이 변경 파일을 직접 점검.
    - 경량 모드: 어댑터에 reviewer가 지정돼 있어도 호출하지 않고, main이 변경 파일을 직접
      점검한다(APPROVE/BLOCK). ②의 게이트는 이미 통과한 상태이므로 품질 관점만 본다.
+
+**③④ 모델 티어링** — 2단계 구조는 유지하되, task 복잡도에 맞춰 검증 모델을 고른다
+(가장 약한 모델로 충분하면 그것을 쓴다, model 파라미터로 Agent()에 전달):
+- **verifier (③)**: 기본 **Sonnet** — 시그니처·FR 대조는 기계적이다. 다중 시스템 통합·
+  미묘한 정합성 판단이 필요한 task만 Opus로 올린다.
+- **2단계 reviewer (④)**: 기본은 에이전트 정의 모델(backend-reviewer=Opus)을 따른다.
+  단 파일 1~2개·저위험(보안·동시성·트랜잭션 무관) task면 Sonnet으로 낮춰 호출해도 된다.
+- 판단 기준은 PHASE 1 계획의 task별 추천 모델·영향 범위를 재사용한다.
 ⑤ 요약만 보관하고 coder·verifier·reviewer의 응답 전문은 폐기한 뒤 다음 task로 진행.
 
 ### 재시도 규칙
