@@ -230,7 +230,27 @@ cp    flutter/agents/*.toml  <project>/.codex/agents/
 ```
 (공통 에이전트 `planner`/`coder`/`verifier`는 `common/agents/`에, 스택 전용 에이전트는 각 스택 폴더(`flutter/agents`·`unity/agents`·`backend/agents`)에 있다. 대상 스택에 맞는 것을 함께 복사한다.)
 
+### backend 설치 스크립트
+
+backend(NestJS/Node.js)는 위 복사 + 어댑터 정리 + 전제조건 점검을 한 번에 해주는
+스크립트가 있다. implement-agent 골격에 backend 어댑터만 남기고(flutter/unity 어댑터
+제거), Codex 설치 시 spec-pipeline의 경로까지 보정한다.
+
+```bash
+# Claude 레이아웃(.claude/)으로 설치
+scripts/install-backend.sh <대상-프로젝트-경로>
+
+# Codex 레이아웃(.agents/, .codex/)으로 설치
+scripts/install-backend.sh --codex <대상-프로젝트-경로>
+
+# 무엇을 복사할지 먼저 확인 (변경 없음)
+scripts/install-backend.sh --dry-run <대상-프로젝트-경로>
+```
+
+파일 복사만 하며 커밋·push는 하지 않는다. 설치 후 대상 프로젝트에 `CLAUDE.md`(아키텍처
+섹션)와 테스트 러너(Jest/Vitest)가 있는지 점검해 경고를 출력한다.
+
 ## 향후 계획
 
 - Next.js 스킬·에이전트 수집
-- 기술 스택을 고르면 자동으로 대상 프로젝트(`.claude/`·`.codex/`)에 세팅해주는 배포 도구
+- 설치 스크립트를 스택 선택형(`install.sh <stack>`)으로 일반화 (현재 backend 전용 제공)
