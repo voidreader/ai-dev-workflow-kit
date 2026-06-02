@@ -21,3 +21,6 @@
 - coder는 구현 전 `npx tsc --noEmit`로 타입 정합성을 자체 확인한다.
 - e2e 테스트(`*.e2e-spec.ts`)는 task 미니사이클의 게이트에서 제외하고 PHASE 3 통합 점검으로 미룬다
   (단위 테스트만 task 게이트로 사용).
+- **경량 모드(TASK ≤ 2)에서는 `2단계 reviewer`인 backend-reviewer를 호출하지 않고 main이
+  직접 품질 점검한다.** TDD 게이트(`npm test`)와 `backend-coding-rule` preload는 경량 모드에서도
+  그대로 유지되므로, 소규모 작업이라도 테스트·규칙 기반 품질선은 지켜진다.

@@ -53,7 +53,7 @@ docs/        설계·계획 문서
 | merge-changelog | changelog fragment 병합 → CHANGELOG.md | Sonnet |
 | milestone-runner | 설정 주입형 N단계 체크포인트 파이프라인 러너 (`pipeline.config.md`로 단계 정의, 상태파일 재개) | Opus |
 | google-sheets-safe-edit | Google Sheets write 도구 호출 전 백업·프리뷰·승인 게이트 | Sonnet |
-| implement-agent | 스택 어댑터를 로드해 planner→coder→verifier→(어댑터 지정)reviewer 파이프라인을 subagent-driven으로 조율. 검증 게이트(TDD/빌드)는 어댑터가 선언 | Opus |
+| implement-agent | 스택 어댑터를 로드해 planner→coder→verifier→(어댑터 지정)reviewer 파이프라인을 subagent-driven으로 조율. 검증 게이트(TDD/빌드)는 어댑터가 선언. TASK 적으면(≤2) verifier·reviewer를 main 경량 검증으로 전환(게이트·coder 규칙 유지) | Opus |
 
 ### flutter/skills
 

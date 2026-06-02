@@ -1,6 +1,6 @@
 ---
 name: implement-agent
-description: 명세서를 기반으로 스택 어댑터를 로드하여, planner→coder→verifier→(어댑터 지정)reviewer 파이프라인을 subagent-driven 방식으로 조율해 task를 격리 구현한다. 검증 게이트(TDD/빌드)는 어댑터가 선언한다.
+description: 명세서를 기반으로 스택 어댑터를 로드하여, planner→coder→verifier→(어댑터 지정)reviewer 파이프라인을 subagent-driven 방식으로 조율해 task를 격리 구현한다. 검증 게이트(TDD/빌드)는 어댑터가 선언한다. TASK 수가 적으면 verifier·reviewer를 main 인라인으로 낮추는 경량 모드로 전환한다(게이트·coder 규칙은 유지).
 ---
 
 Recommended Model : Claude Opus
@@ -25,6 +25,11 @@ Recommended Model : Claude Opus
    - 변경 범위 규칙(범위 밖 수정 금지, 필요 시 사용자 확인)
 3. planner의 "사용자 확인 필요" 항목이 있으면 해소될 때까지 사용자와 반복한다.
 4. 통합 계획 리포트(task 목록 + task별 추천 모델)를 사용자에게 보여주고 승인을 받는다.
+5. **검증 깊이 모드 확정** — 승인된 계획의 TASK 수로 결정한다. 이후 미니사이클의 ③④에 적용한다.
+   - **경량 모드** (TASK 수 ≤ 2): ③ verifier·④ reviewer 서브에이전트를 호출하지 않고 main이 인라인으로 검증한다.
+   - **풀 모드** (TASK 수 ≥ 3): ③ verifier·④ reviewer를 어댑터 선언대로 호출한다.
+   - ①(coder + `coder 규칙` preload)와 ②(검증 게이트)는 **모드와 무관하게 항상 동일하게 수행**한다.
+   - 사용자에게 어떤 모드로 진행하는지 한 줄로 알린다 (예: "TASK 2개 → 경량 모드").
 
 ## PHASE 2: 구현 (subagent-driven, task 격리)
 계획의 task를 의존성 순서로 한 번에 1개씩 처리한다. task 사이에는 사용자 체크인을 하지 않는다
@@ -42,10 +47,15 @@ Recommended Model : Claude Opus
    - build-gate:
      ① coder 구현
      ② `게이트 명령` 실행 → PASS 확인. 실패 시 `build resolver`가 있으면 위임, 없으면 coder 재호출.
-③ verifier 호출 (명세 준수, 1단계 리뷰) — PASS/FAIL.
-④ 2단계 리뷰 — 어댑터의 `2단계 reviewer`가:
-   - 에이전트 이름이면 그 에이전트를 호출 (APPROVE/BLOCK).
-   - "없음 — main 직접 리뷰"면 main이 변경 파일을 직접 점검.
+③ 명세 준수 검증 (1단계 리뷰) — PHASE 1에서 확정한 모드로 분기:
+   - 풀 모드: `verifier` 에이전트를 Agent()로 호출 → PASS/FAIL.
+   - 경량 모드: main이 직접 검증한다. coder 완료 보고의 변경 파일을 Read로 확인하고,
+     명세의 각 요구사항(FR/REQ)이 구현됐는지·계획 시그니처를 지켰는지 대조한다 → PASS/FAIL.
+④ 코드 품질 검증 (2단계 리뷰) — 모드로 분기:
+   - 풀 모드: 어댑터의 `2단계 reviewer`가 에이전트 이름이면 그 에이전트를 호출(APPROVE/BLOCK),
+     "없음 — main 직접 리뷰"면 main이 변경 파일을 직접 점검.
+   - 경량 모드: 어댑터에 reviewer가 지정돼 있어도 호출하지 않고, main이 변경 파일을 직접
+     점검한다(APPROVE/BLOCK). ②의 게이트는 이미 통과한 상태이므로 품질 관점만 본다.
 ⑤ 요약만 보관하고 coder·verifier·reviewer의 응답 전문은 폐기한 뒤 다음 task로 진행.
 
 ### 재시도 규칙
