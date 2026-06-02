@@ -16,7 +16,9 @@ common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
 unity/       Unity 전용 (skills/, agents/)
 nextjs/      Next.js 전용 (skills/, hooks/)
+backend/     Node.js/NestJS 전용 (skills/, agents/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
+scripts/     대상 프로젝트로 스킬·에이전트를 설치하는 배포 스크립트
 docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/plans)
 ```
 
@@ -25,7 +27,7 @@ docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/pla
 새 스킬·에이전트를 추가할 때 아래 기준으로 위치를 정한다.
 
 - **common** — 스택과 무관하게 동작하는 워크플로우(기획→명세→구현→마무리).
-- **flutter / unity** (또는 추후 nextjs) — 특정 스택/언어에 종속된 것.
+- **flutter / unity / backend** (또는 nextjs) — 특정 스택/언어에 종속된 것.
 - **examples** — 특정 게임/도메인에 강하게 종속되어 그대로 재사용하기 어려운 것.
   새 스킬을 만들 때 참고용으로만 둔다.
 
@@ -62,4 +64,5 @@ docs/        설계·계획 문서 (docs/superpowers/specs, docs/superpowers/pla
 ## 향후 계획
 
 - Next.js 스킬·에이전트·훅 추가 수집 (현재 design-inventory 스킬 + 동기화 훅 보유)
-- 기술 스택을 고르면 대상 프로젝트의 `.claude/`·`.codex/`로 자동 세팅해주는 배포 도구
+- 배포 스크립트를 스택 선택형(`install.sh <stack>`)으로 일반화
+  (현재 `scripts/install-backend.sh`로 backend 전용만 제공)
