@@ -20,7 +20,7 @@ common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
 unity/       Unity 전용 (skills/, agents/)
 nextjs/      Next.js 전용 (skills/, hooks/)
-backend/     Node.js/NestJS 전용 (agents/)
+backend/     Node.js/NestJS 전용 (skills/, agents/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
 docs/        설계·계획 문서
 ```
@@ -40,8 +40,8 @@ docs/        설계·계획 문서
 ### common/skills
 
 스택 무관 범용 워크플로우만 둔다. `implement-spec`·`spec-writer`·`finalize-feature`·
-`finalize-minor-task` 등 스택마다 내용이 달라지는 것은 `flutter/`·`unity/` 스택
-폴더에 둔다. `implement-agent`는 골격이고 스택별 검증은 `adapters/<stack>.md`가 선언한다
+`finalize-minor-task` 등 스택마다 내용이 달라지는 것은 `flutter/`·`unity/`·`backend/`
+스택 폴더에 둔다 (`spec-writer`는 backend도 제공). `implement-agent`는 골격이고 스택별 검증은 `adapters/<stack>.md`가 선언한다
 (flutter/unity/backend 제공).
 
 | 스킬 | 설명 | 권장 모델 |
@@ -98,6 +98,16 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
 | design-inventory | 화면·구성요소·상태·토큰을 5종 SSOT 문서로 유지하고 코드↔Figma 핸드오프 (App Router) | Sonnet |
+
+### backend/skills
+
+`spec-writer`는 같은 역할의 Flutter·Unity 버전이 각 스택 폴더에도 있는 동명 스킬이다
+(동명 스킬 네이밍 규칙 참고). 구현은 `common/implement-agent`(backend 어댑터, TDD
+모드)로 이어진다 — backend 전용 `implement-spec`은 없다.
+
+| 스킬 | 설명 | 권장 모델 |
+|---|---|---|
+| spec-writer | 요구 문서 → NestJS/Node.js 개발 명세서 생성. 테스트 명세(TDD) 포함, DB 변경 시 마이그레이션 SQL을 별도 파일로 작성(직접 적용 안 함), 결정 지점은 장단점과 함께 제시 | Opus |
 
 ### examples/band-of-mercenaries/skills
 
