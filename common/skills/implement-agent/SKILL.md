@@ -38,6 +38,11 @@ Recommended Model : Claude Opus
 ### task 미니사이클
 ① coder 호출 — 해당 TASK 단독. 어댑터의 `coder 규칙`을 preload 대상으로 전달.
    coder에게 task별 추천 모델(haiku/sonnet/opus)을 model 파라미터로 전달한다.
+   **plan 제공은 인라인 방식으로 한다:** PHASE 1 계획 리포트에서 **해당 task 본문과
+   꼭 필요한 배경(선행 task가 만든 시그니처·연관 결정 등)만 골라 프롬프트에 직접
+   써 넣는다.** coder가 명세서·계획 문서 전체를 Read하게 하지 않는다 — 다른 task나
+   미래 결정으로 컨텍스트가 오염되고 scope가 번지는 것을 막기 위함이다. (코드 파일·
+   CLAUDE.md 같은 코드베이스 Read는 coder가 자유롭게 해도 된다. 막는 것은 plan/명세 통독뿐.)
 ② 검증 게이트 — 어댑터의 `검증모드`로 분기:
    - tdd:
      ①-a coder가 실패 테스트 먼저 작성
