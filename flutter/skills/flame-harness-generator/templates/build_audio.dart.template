@@ -1,0 +1,115 @@
+// tool/build_audio.dart — 외부 파일 없이 바로 출시 가능한 플레이스홀더 오디오를 생성한다.
+// 순수 Dart(의존성 없음)로 22 kHz 모노 16-bit PCM WAV(iOS 호환)를 작성한다.
+// 실행 방법: `dart run tool/build_audio.dart`.
+//
+// 제너레이터는 게임 분위기에 맞게 음표/템포를 조정한다; 필요하면 나중에 WAV를 실제
+// 오디오로 교체하면 된다. 출력 경로: assets/audio/.
+
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:typed_data';
+
+const int kRate = 22050;
+
+void main() {
+  Directory('assets/audio').createSync(recursive: true);
+  // --- SFX ---
+  _write('assets/audio/tap.wav', _blip(660, 880, 0.09));          // UI / 점프
+  _write('assets/audio/coin.wav', _arp([880, 1320], 0.12));       // 아이템 획득
+  _write('assets/audio/hit.wav', _noise(0.18, decay: 18));        // 충돌
+  _write('assets/audio/win.wav', _arp([523, 659, 784, 1047], 0.28)); // 성공
+  // --- BGM: 짧고 끊김 없는 루프 (간단한 베이스 위의 square 리드) ---
+  _write('assets/audio/bgm.wav', _bgm());
+  stdout.writeln('build_audio: wrote tap/coin/hit/win.wav + bgm.wav into assets/audio/');
+}
+
+/// 두 주파수 사이를 올라가는 blip 효과.
+List<double> _blip(double f0, double f1, double dur) {
+  final n = (dur * kRate).round();
+  return List<double>.generate(n, (i) {
+    final t = i / kRate, p = i / n;
+    final f = f0 + (f1 - f0) * p;
+    return _square(f, t) * _env(p) * 0.5;
+  });
+}
+
+/// 주어진 음표(Hz)를 순서대로 재생하는 아르페지오.
+List<double> _arp(List<double> notes, double dur) {
+  final n = (dur * kRate).round();
+  return List<double>.generate(n, (i) {
+    final p = i / n;
+    final note = notes[(p * notes.length).floor().clamp(0, notes.length - 1)];
+    return _square(note, i / kRate) * _env(p) * 0.5;
+  });
+}
+
+/// 지수 감쇠를 적용한 화이트 노이즈 버스트 (충격음).
+List<double> _noise(double dur, {double decay = 12}) {
+  final rnd = math.Random(7);
+  final n = (dur * kRate).round();
+  return List<double>.generate(
+      n, (i) => (rnd.nextDouble() * 2 - 1) * math.exp(-decay * (i / n)) * 0.5);
+}
+
+/// 약 8초 길이의 끊김 없는 루프: 4화음 진행 위에 square 리드 + 사인 베이스.
+List<double> _bgm() {
+  const bpm = 120, beats = 16; // 120bpm 기준 8초
+  final spb = 60 / bpm;
+  final total = (beats * spb * kRate).round();
+  const lead = [523.25, 587.33, 659.25, 783.99]; // C D E G
+  const bass = [130.81, 146.83, 164.81, 196.0];
+  final out = List<double>.filled(total, 0);
+  for (var i = 0; i < total; i++) {
+    final t = i / kRate;
+    final beat = (t / spb).floor();
+    final chord = (beat ~/ 4) % 4;
+    final beatP = (t / spb) - beat;
+    out[i] = _square(lead[chord], t) * _env(beatP) * 0.18 +
+        math.sin(2 * math.pi * bass[chord] * t) * 0.12;
+  }
+  // 루프 지점에서 클릭음이 없도록 50 ms 페이드 인/아웃 적용.
+  final fade = (0.05 * kRate).round();
+  for (var i = 0; i < fade; i++) {
+    out[i] *= i / fade;
+    out[total - 1 - i] *= i / fade;
+  }
+  return out;
+}
+
+double _square(double f, double t) =>
+    math.sin(2 * math.pi * f * t) >= 0 ? 1.0 : -1.0;
+
+/// 짧은 어택 + 디케이 엔벨로프 (클릭음 방지).
+double _env(double p) {
+  const a = 0.06;
+  if (p < a) return p / a;
+  return (1 - (p - a) / (1 - a)).clamp(0.0, 1.0);
+}
+
+void _write(String path, List<double> samples) {
+  final n = samples.length;
+  final bytes = ByteData(44 + n * 2);
+  void tag(int o, String s) {
+    for (var i = 0; i < s.length; i++) {
+      bytes.setUint8(o + i, s.codeUnitAt(i));
+    }
+  }
+  tag(0, 'RIFF');
+  bytes.setUint32(4, 36 + n * 2, Endian.little);
+  tag(8, 'WAVE');
+  tag(12, 'fmt ');
+  bytes.setUint32(16, 16, Endian.little);
+  bytes.setUint16(20, 1, Endian.little); // PCM
+  bytes.setUint16(22, 1, Endian.little); // 모노
+  bytes.setUint32(24, kRate, Endian.little);
+  bytes.setUint32(28, kRate * 2, Endian.little);
+  bytes.setUint16(32, 2, Endian.little);
+  bytes.setUint16(34, 16, Endian.little);
+  tag(36, 'data');
+  bytes.setUint32(40, n * 2, Endian.little);
+  for (var i = 0; i < n; i++) {
+    final s = (samples[i].clamp(-1.0, 1.0) * 32767).round();
+    bytes.setInt16(44 + i * 2, s, Endian.little);
+  }
+  File(path).writeAsBytesSync(bytes.buffer.asUint8List());
+}

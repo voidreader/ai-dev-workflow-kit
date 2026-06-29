@@ -1,0 +1,77 @@
+// tool/strip_bg.dart — 소스 스프라이트에서 단색/근사 단색 배경을 제거한다
+// (AI 생성 또는 무료 팩) — 이미지 테두리에서 알파로 flood-fill 방식으로 처리한다.
+// Pure Dart (package:image). 실행: `dart run tool/strip_bg.dart <in.png> [out.png]`.
+//
+// 이유: AI/무료 스프라이트는 흰색/회색/베이지 배경 위에 제공되는 경우가 많은데, 단순
+// "rgb > 245 → transparent" 임계값 방식은 흰색이 아닌 배경에서 실패하고
+// 피사체의 밝은 부분을 지워버린다. 이 도구는 테두리 색상을 샘플링하고
+// 허용 오차 범위 내에서 연결된 배경 픽셀을 flood-fill로 채운다 — 실루엣 안전.
+//
+// dev_dependencies에 `image: ^4.0.0` 을 추가한다.
+
+import 'dart:io';
+import 'dart:math' as math;
+import 'package:image/image.dart' as img;
+
+const int kTolerance = 38; // "배경과 동일"로 처리하는 RGB 거리
+
+void main(List<String> args) {
+  if (args.isEmpty) {
+    stderr.writeln('usage: dart run tool/strip_bg.dart <in.png> [out.png]');
+    exit(2);
+  }
+  final inPath = args[0];
+  final outPath = args.length > 1 ? args[1] : inPath;
+  final src = img.decodeImage(File(inPath).readAsBytesSync());
+  if (src == null) {
+    stderr.writeln('strip_bg: could not decode $inPath');
+    exit(1);
+  }
+  final im = src.convert(numChannels: 4); // 알파 채널 확보
+  final w = im.width, h = im.height;
+
+  // 배경색 = 4개 모서리의 평균값.
+  final corners = [
+    im.getPixel(0, 0), im.getPixel(w - 1, 0),
+    im.getPixel(0, h - 1), im.getPixel(w - 1, h - 1),
+  ];
+  final br = corners.map((p) => p.r).reduce((a, b) => a + b) / 4;
+  final bg = corners.map((p) => p.g).reduce((a, b) => a + b) / 4;
+  final bb = corners.map((p) => p.b).reduce((a, b) => a + b) / 4;
+
+  bool isBg(img.Pixel p) {
+    final d = math.sqrt(math.pow(p.r - br, 2) + math.pow(p.g - bg, 2) + math.pow(p.b - bb, 2));
+    return d <= kTolerance;
+  }
+
+  // 모든 테두리 픽셀에서 BFS flood-fill 실행; 배경색과 일치하는 연결된
+  // 픽셀만 투명으로 처리한다 (내부 피사체 픽셀은 보존된다).
+  final visited = List<bool>.filled(w * h, false);
+  final queue = <int>[];
+  void seed(int x, int y) {
+    final idx = y * w + x;
+    if (!visited[idx] && isBg(im.getPixel(x, y))) {
+      visited[idx] = true;
+      queue.add(idx);
+    }
+  }
+  for (var x = 0; x < w; x++) { seed(x, 0); seed(x, h - 1); }
+  for (var y = 0; y < h; y++) { seed(0, y); seed(w - 1, y); }
+
+  var cleared = 0;
+  while (queue.isNotEmpty) {
+    final idx = queue.removeLast();
+    final x = idx % w, y = idx ~/ w;
+    im.setPixelRgba(x, y, 0, 0, 0, 0); // 투명 처리
+    cleared++;
+    for (final d in const [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      final nx = x + d[0], ny = y + d[1];
+      if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+        seed(nx, ny);
+      }
+    }
+  }
+
+  File(outPath).writeAsBytesSync(img.encodePng(im));
+  stdout.writeln('strip_bg: $inPath → $outPath (cleared $cleared bg px, bg≈$br,$bg,$bb)');
+}

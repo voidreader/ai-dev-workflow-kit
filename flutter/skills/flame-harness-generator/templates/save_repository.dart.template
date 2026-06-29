@@ -1,0 +1,87 @@
+import 'dart:convert';
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:play_services_block_store/play_services_block_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// 세이브 블롭을 내구성 있게 보존하는 저장소 — 앱 재설치 및 기기 이전 후에도 유지된다.
+///
+/// 전략 (출시된 게임과 동일):
+///  - iOS: flutter_secure_storage를 통한 Keychain — 앱 삭제 후에도 유지되며,
+///    iCloud Keychain을 통해 새 기기로 이어진다.
+///  - Android: Google Play Block Store — 앱 삭제 및 기기 이전 후에도 유지된다
+///    (새 기기 설정 시 동일한 Google 계정으로 복원됨).
+///  - 공통: shared_preferences 미러를 빠른 로컬 캐시 및
+///    Android Auto Backup 페이로드로 사용한다(이중 보험).
+///
+/// 블롭은 단일 JSON 문자열이다(Block Store의 ~4KB/항목 제한에 충분히 작다).
+/// 모든 저장 호출은 try/catch로 감싸여 있어 백엔드 실패 시
+/// 크래시 없이 다음 계층으로 폴백된다.
+class SaveRepository {
+  SaveRepository._();
+
+  // __SAVE_KEY__를 `<app_slug>_save_v1`으로 교체하라(스키마 마이그레이션을 위한 버전 포함).
+  static const _key = '__SAVE_KEY__';
+
+  static const _secure = FlutterSecureStorage(
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
+
+  /// 원시 JSON 블롭을 읽는다. 내구성 저장소를 우선하고,
+  /// 실패 시 shared_preferences 캐시로 폴백한다. 저장된 값이 없으면 null을 반환한다.
+  static Future<String?> read() async {
+    String? durable;
+    try {
+      if (Platform.isIOS) {
+        durable = await _secure.read(key: _key);
+      } else if (Platform.isAndroid) {
+        durable = await PlayServicesBlockStore.retrieveString(_key);
+      }
+    } catch (e) {
+      debugPrint('SaveRepository durable read failed: $e');
+    }
+    if (durable != null && durable.isNotEmpty) return durable;
+
+    // 로컬 캐시로 폴백한다(Android Auto Backup 페이로드이기도 함).
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_key);
+    } catch (e) {
+      debugPrint('SaveRepository cache read failed: $e');
+      return null;
+    }
+  }
+
+  /// JSON 블롭을 내구성 저장소와 로컬 캐시 양쪽에 저장한다.
+  static Future<void> write(String json) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_key, json);
+    } catch (e) {
+      debugPrint('SaveRepository cache write failed: $e');
+    }
+    try {
+      if (Platform.isIOS) {
+        await _secure.write(key: _key, value: json);
+      } else if (Platform.isAndroid) {
+        await PlayServicesBlockStore.saveString(_key, json);
+      }
+    } catch (e) {
+      debugPrint('SaveRepository durable write failed: $e');
+    }
+  }
+
+  /// 편의 메서드: 블롭을 읽어 맵으로 디코딩한다.
+  static Future<Map<String, dynamic>> readMap() async {
+    final raw = await read();
+    if (raw == null || raw.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(raw);
+      return decoded is Map<String, dynamic> ? decoded : {};
+    } catch (_) {
+      return {};
+    }
+  }
+}

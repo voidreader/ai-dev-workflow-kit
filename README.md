@@ -70,6 +70,41 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | flutter-figma-export | Flutter 위젯·토큰·스크린을 게이트 승인 거쳐 Figma로 export (에이전트 5종 조율) | Opus |
 | pixel-painter-figma-sync | CustomPainter 픽셀아트를 SSOT 한 곳에서 Flutter·Figma가 동기화 | Opus |
 
+#### flame-harness — Flame 게임 프로토타입 파이프라인 (게임 전용)
+
+`flutter-flame-harness`에서 이식한 **Flame 게임 전용** 파이프라인이다. 다른 flutter 스킬과 달리
+**상태머신(`docs/harness/state.md`)으로 자동 진행**한다 (`flame-harness` 오케스트레이터가 디스패치).
+
+> 📖 상세 사용법(3단계 흐름·옵션·인자·자격증명·트러블슈팅): [`flutter/flame-harness-guide.md`](flutter/flame-harness-guide.md)
+아이디어 → 검증된 플레이 가능 게임(프로토타입)까지 만든다. 이후 기능은 위의 반복 루프
+(`plan-writer`→`spec-pipeline`→`implement-*`→`finalize-*`)로 키운다. SSOT 문서(`protocol.md`,
+`game-gotchas.md`)는 `flame-harness` 스킬에 동봉되어 부트스트랩 시 대상 프로젝트로 복사된다.
+
+| 스킬 | 설명 | 권장 모델 |
+|---|---|---|
+| flame-harness | 오케스트레이터: 부트스트랩 + next_role 디스패치 루프 (Phase A 진입점) | Sonnet |
+| flame-harness-research | 시장 조사·컨셉 선택·클론 회피 체크 | Sonnet |
+| flame-harness-plan | PRD 작성 + 앱 식별자(app_name/slug/bundle_id) 할당 | Opus |
+| flame-harness-design | 디자인 토큰·비주얼 컨셉·에셋/오디오 계획 | Sonnet |
+| flame-harness-contract | 완성 기준 협상 (Hard Gates + R1~R9 + Functional Criteria) → AGREED | Opus |
+| flame-harness-generator | 3단계(5a→5b→5c) 게임 빌드, 각 단계 HARD GATE | Opus |
+| flame-harness-evaluator | 회의적 QA: 실제 실행 후 PASS/FAIL, FAIL→generator 루프 | Opus |
+| flame-harness-resume | 일시정지(rate limit 등) 후 재개 | Sonnet |
+| flame-harness-status | 파이프라인 상태 조회 (읽기 전용) | Sonnet |
+
+#### ship-* — 출시 유틸 (독립 호출, 범용 Flutter)
+
+`flutter-flame-harness` Phase B에서 이식. **상태머신 없이 각 스킬을 독립 호출**하며, harness가
+생성한 게임뿐 아니라 **임의의 Flutter 앱**에 쓸 수 있다. 경로·자격증명·식별자는 인자로 받는다.
+
+| 스킬 | 설명 | 권장 모델 |
+|---|---|---|
+| ship-admob | 리워드 광고 배치 + `google_mobile_ads`/ATT/UMP 코드 주입 | Sonnet |
+| ship-build | fastlane로 서명 IPA→TestFlight, AAB→Play internal 빌드·업로드 | Sonnet |
+| ship-screenshot | `flutter drive`로 로케일별 스토어 스크린샷 캡처·ASO 메타데이터·업로드 | Sonnet |
+| ship-submit | 스토어 텍스트 메타데이터 업로드 + 최종 제출 수동 단계 안내 | Sonnet |
+| ship-retro | 범용 릴리스 회고(Keep/Problem/Try + 체크리스트) 문서 생성 | Sonnet |
+
 ### unity/skills
 
 `implement-spec`·`spec-writer`·`finalize-feature`·`finalize-minor-task`·`merge-changelog`는
@@ -200,6 +235,12 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 |---|---|---|
 | design-doc-sync-reminder | 화면/구성요소 파일 수정 시 `Docs/design/` SSOT 문서 동기화 점검 리마인더 (`design-inventory` 스킬과 짝) | Claude + Codex |
 
+### flutter/hooks
+
+| 훅 | 설명 | 플랫폼 |
+|---|---|---|
+| flame-rate-limit | flame-harness Phase A가 rate limit(429)에 걸리면 `state.md`를 paused로 표시 (Phase A 전용, `flame-harness-resume`과 짝) | Claude + Codex |
+
 ## 동명 스킬 네이밍 규칙
 
 `implement-agent`처럼 같은 역할이지만 스택마다 내용이 다른 스킬은 **이름을
@@ -250,7 +291,34 @@ scripts/install-backend.sh --dry-run <대상-프로젝트-경로>
 파일 복사만 하며 커밋·push는 하지 않는다. 설치 후 대상 프로젝트에 `CLAUDE.md`(아키텍처
 섹션)와 테스트 러너(Jest/Vitest)가 있는지 점검해 경고를 출력한다.
 
+### flutter 설치 스크립트
+
+flutter는 common+flutter 스킬·에이전트 복사 + 어댑터 정리(flutter만 유지) +
+flame-rate-limit 훅 스크립트 복사 + 전제조건 점검을 한 번에 해주는 스크립트가 있다.
+flame-harness의 동봉 리소스(`protocol.md`·`game-gotchas.md`·각 스킬의 `templates/`)도 함께 복사된다.
+
+```bash
+# Claude 레이아웃(.claude/)으로 설치
+scripts/install-flutter.sh <대상-프로젝트-경로>
+
+# Codex 레이아웃(.agents/, .codex/)으로 설치
+scripts/install-flutter.sh --codex <대상-프로젝트-경로>
+
+# 무엇을 복사할지 먼저 확인 (변경 없음)
+scripts/install-flutter.sh --dry-run <대상-프로젝트-경로>
+```
+
+flame-rate-limit 훅을 켜려면 `flutter/hooks/flame-rate-limit/install.<platform>.json`의
+hooks 블록을 대상 프로젝트 설정에 병합한다(스크립트가 안내를 출력).
+
+### 검증 스크립트
+
+```bash
+bash scripts/validate-fastlane.sh   # ship-build fastlane 템플릿 ruby 문법 검증
+bash scripts/test-hook.sh           # flame-rate-limit 훅 동작 검증
+```
+
 ## 향후 계획
 
-- Next.js 스킬·에이전트 수집
-- 설치 스크립트를 스택 선택형(`install.sh <stack>`)으로 일반화 (현재 backend 전용 제공)
+- Next.js 스킬·에이전트 추가 수집
+- 설치 스크립트를 스택 선택형(`install.sh <stack>`)으로 일반화 (현재 flutter·backend 제공)
