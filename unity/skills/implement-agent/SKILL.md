@@ -99,17 +99,28 @@ Recommended Model : Claude Opus
 
    **모델 선택:**
 
-   planner가 각 TASK에 부여한 `추천 모델`을 Agent 호출 시 `model` 파라미터로 그대로 전달한다.
+   planner는 각 TASK에 `추천 모델`을 **티어 라벨**(`sonnet` | `opus`)로 부여한다. 라벨은
+   플랫폼 중립적인 등급 표기이며, 실제 모델은 아래 표로 번역해서 호출한다.
 
-   - `integration` 복잡도 → `model: "sonnet"` — 기존 패턴을 따라가는 구현 (대부분의 태스크)
-   - `architecture` 복잡도 → `model: "opus"` — 새 SaveData 스키마·마이그레이션, 비동기 로딩 순서,
-     씬 전환 중 상태 보존, Manager 의존 재정리, 동시성·생명주기 얽힘
+   | 티어 | 언제 | Claude | Codex |
+   |---|---|---|---|
+   | `sonnet` (integration) | 기존 패턴을 따라가는 구현 — Manager 연결, UI 바인딩, 기존 SaveData 필드 추가 (대부분의 태스크) | `sonnet` | `5.6 Terra` |
+   | `opus` (architecture) | 구현 중에도 설계 판단이 남는 태스크 — 새 SaveData 스키마·마이그레이션, 비동기 로딩 순서, 씬 전환 중 상태 보존, Manager 의존 재정리, 동시성·생명주기 얽힘 | `opus` | `5.6 Sol` |
+
+   > Codex 열의 모델명은 표시 이름 기준이다. 호출에 쓰는 정확한 식별자가 다르면 **이 표만**
+   > 고치면 된다 — 티어 라벨은 planner·계획서 어디에도 플랫폼 이름으로 박혀 있지 않다.
+
+   - **Claude**: 번역한 모델명을 Agent 호출 시 `model` 파라미터로 전달한다.
+   - **Codex**: 호출 단위 모델 지정을 지원하면 같은 방식으로 전달한다. 지원하지 않으면
+     모델을 바꾸지 말고, `opus` 티어 태스크를 **시작 전에 사용자에게 알린다** —
+     "TASK-n은 architecture 등급이다. 현재 세션 모델로 진행할지, 상위 모델로 따로 돌릴지"를
+     묻고 답을 받은 뒤 진행한다. 조용히 하위 모델로 처리하지 않는다.
 
    planner의 추천이 의심스러우면 **한 단계 위로 올린다.** Unity 규칙 위반(라이프사이클 순서,
    Fake Null, GetComponent 캐싱)은 컴파일을 통과하고 런타임에야 드러나므로, 약한 모델로
    재작업하는 비용이 상위 모델 한 번 쓰는 비용보다 크다.
 
-   planner·verifier의 모델은 각 에이전트 frontmatter의 기본값(opus)을 사용한다 (override 없음).
+   planner·verifier의 모델은 각 에이전트 정의의 기본값(`opus` 티어)을 사용한다 (override 없음).
    verifier는 명세 대조뿐 아니라 Fake Null 판정·호환성 추적·품질 검증까지 맡고, Unity
    파이프라인에는 그 뒤에 별도 2단계 리뷰어가 없으므로 등급을 내리지 않는다.
 

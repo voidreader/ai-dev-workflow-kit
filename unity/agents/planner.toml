@@ -62,6 +62,8 @@ developer_instructions = """
 | `integration` | `sonnet` | 기존 패턴을 따라가면 되는 태스크. Manager 연결, UI_View/UI_Popup 바인딩, SerializeField 추가, 기존 SaveData에 필드 추가, 기존 매니저 메서드 호출, 일반 게임 로직 (대부분의 태스크가 여기 해당) |
 | `architecture` | `opus` | 구현 중에도 설계 판단이 남는 태스크. 새 SaveData 스키마·저장 데이터 마이그레이션, 비동기 로딩 순서·Addressable 생명주기, 씬 전환 중 상태 보존, Manager 간 의존 관계 재정리, 코루틴/UniTask 동시성·경쟁 상태, 새 아키텍처 패턴 도입, 광범위한 코드베이스 이해가 필요한 리팩토링 |
 
+`추천 모델`에 적는 `sonnet`/`opus`는 **플랫폼 중립 티어 라벨**이다. 실제 모델명 번역은 오케스트레이터(implement-agent)가 담당하므로, 계획서에는 라벨을 그대로 적는다.
+
 **경계가 모호하면 한 단계 높인다.** 쉬운 태스크에 상위 모델을 쓰는 비용은 작지만, 어려운 태스크에 약한 모델을 쓰면 재작업 비용이 더 크다. 특히 Unity 규칙(라이프사이클 순서, Fake Null, GetComponent 캐싱) 위반은 컴파일을 통과하고 런타임에야 드러나므로, 판단이 걸리면 `architecture`로 올린다.
 
 `haiku` 등급은 두지 않는다. coder는 `error-handling`·`unity-script-rule` 스킬의 규칙을 적용해야 하고, 그 규칙들이 다루는 함정(Fake Null, 라이프사이클, 캐싱)이 약한 모델에서 가장 자주 새어나가기 때문이다.
