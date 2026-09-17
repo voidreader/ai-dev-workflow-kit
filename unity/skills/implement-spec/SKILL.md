@@ -82,10 +82,18 @@ Recommended Model : Claude Opus
 
    구현이 끝나면 아래 a~c를 **하나의 완료 단계**로 모두 수행한다. 검증만 하고 문서 생성을 빠뜨리지 않는다.
 
-   a. **컴파일 검증**
-      - using 구문 누락, 오타, 네임스페이스 불일치 등 명백한 컴파일 에러를 점검한다.
-      - 새로 생성한 클래스가 기존 코드에서 올바르게 참조되는지 확인한다.
-      - Unity 에디터 실행 없이 확인 가능한 범위에서 검증한다.
+   a. **컴파일 검증** — Unity MCP Bridge 적용
+
+      📄 참조: [`.claude/skills/_shared/unity-mcp-bridge.md`](../_shared/unity-mcp-bridge.md)
+
+      - **MCP 연결 시 (§4-3 신규 스크립트 후 검증 + §4-1 컴파일 게이트)**:
+        - `refresh_unity` → `manage_editor(get_state)` 폴링 → `read_console(types:["Error"])` 0건 확인
+        - 에러 발견 시 즉시 수정 후 재시도. 재시도 후에도 실패하면 사용자에게 보고
+        - 신규 경고도 한 번 점검(`types:["Warning"]`)하고 plan 문서에 기록
+      - **MCP 미연결 시 (정적 검증)**:
+        - using 구문 누락, 오타, 네임스페이스 불일치 등 명백한 컴파일 에러를 정적으로 점검
+        - 새로 생성한 클래스가 기존 코드에서 올바르게 참조되는지 확인
+        - plan 문서 안내 영역에 ⚠️ "UnityMCP 미연결 — 사용자가 Unity 에디터에서 컴파일 직접 확인 필요" 명시
 
    b. **plan 문서 생성** (필수)
       - 명세서 파일명에서 `.md` 확장자를 제거한 이름을 `{specBase}`로 사용한다.

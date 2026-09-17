@@ -232,6 +232,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
+## 8.5. 컴파일 게이트 (UnityMCP)
+
+git 커밋 직전, **Unity MCP Bridge** 의 §4-1 컴파일 게이트를 수행한다.
+
+📄 참조: [`.claude/skills/_shared/unity-mcp-bridge.md`](../_shared/unity-mcp-bridge.md)
+
+- 연결됨 → `refresh_unity` → `manage_editor(get_state)` 폴링 → `read_console(types:["Error"])` 0건 확인. 에러 발견 시 사용자에게 보고하고 커밋 보류
+- 미연결 → 본 단계 스킵, 결과 출력에 ⚠️ 명시
+
+소규모 작업이라도 **깨진 빌드를 커밋하지 않기 위한** 마지막 안전장치다. 에러 0건이 확인되어야만 9단계 커밋으로 진행한다.
+
+---
+
 ## 9. git 커밋 수행
 
 변경 파일을 **개별적으로 스테이징한다**.

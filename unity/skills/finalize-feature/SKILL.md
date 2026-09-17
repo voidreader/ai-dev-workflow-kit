@@ -73,6 +73,12 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 - 파일 전체를 수정하지 말고, 관련 섹션을 찾아 업데이트하거나 append 한다.
 
+**서브디렉토리 CLAUDE.md 업데이트**: 수정한 파일이 속한 디렉토리에 CLAUDE.md가 있으면 해당 파일도 함께 업데이트한다.
+
+- 시스템 상세 변경(클래스 추가/삭제, 흐름 변경, 상수 변경 등)은 서브디렉토리 CLAUDE.md에 반영
+- 전역 규칙 변경(코딩 컨벤션, 금지 사항, 매니저 추가 등)은 루트 CLAUDE.md에 반영
+- 서술이 그 폴더 코드에 몰려 있는데(참조의 절반 이상) 문서가 없으면 신설한다 — 문서가 이미 있다는 이유로 루트에 쌓지 않는다
+
 ### 5. CHANGELOG Fragment 생성
 
 **CHANGELOG.md를 직접 수정하지 않는다.** 대신 개별 fragment 파일을 생성한다.
@@ -123,6 +129,17 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - **plan.md**: `## 추가 변경 사항` 섹션을 하단에 추가한다. implement-spec이 작성한 기존 내용은 유지하고, 이후 변경된 파일 목록과 수정 내역을 추가 기재한다.
 - **unity_tasks.md**: 추가 작업에서 새로운 Unity 수동 작업이 발생했으면 기존 파일에 항목을 추가한다. 기존 항목 중 이미 해결된 것이 있으면 완료 표시한다.
 - **spec.md**: 명세서 원본이므로 수정하지 않는다.
+
+### 6.5. 컴파일 게이트 (UnityMCP)
+
+git 커밋 직전, **Unity MCP Bridge** 의 §4-1 컴파일 게이트를 수행한다.
+
+📄 참조: [`.claude/skills/_shared/unity-mcp-bridge.md`](../_shared/unity-mcp-bridge.md)
+
+- 연결됨 → `refresh_unity` → `manage_editor(get_state)` 폴링 → `read_console(types:["Error"])` 0건 확인. 에러 발견 시 사용자에게 보고하고 커밋 보류
+- 미연결 → 본 단계 스킵, 결과 출력에 ⚠️ 명시
+
+이 단계는 **깨진 빌드 커밋을 차단**하기 위한 것이다. 에러 0건이 확인되어야만 7단계 커밋으로 진행한다.
 
 ### 7. git 커밋 수행
 

@@ -121,6 +121,15 @@ Recommended Model : Claude Opus
 
    PHASE 2 완료 직후 진행한다. **TASK 수에 따라 검증 깊이를 분기한다.**
 
+   #### PHASE 3 진입 전: 컴파일 사전 점검 (Unity MCP Bridge)
+
+   검증에 들어가기 전에 **Unity MCP Bridge**의 §4-3 신규 스크립트 후 검증을 수행한다.
+
+   📄 참조: [`.claude/skills/_shared/unity-mcp-bridge.md`](../_shared/unity-mcp-bridge.md)
+
+   - **MCP 연결 시**: `refresh_unity` → `manage_editor(get_state)` 폴링 → `read_console(types:["Error","Warning"])` 결과를 검증 입력에 그대로 첨부한다. 에러가 0건이 아니면 검증 전에 해당 TASK의 coder를 우선 재호출하여 수정한다.
+   - **MCP 미연결 시**: 본 단계를 스킵하고 검증 입력에 "MCP 미연결 — 컴파일 직접 점검 필요" 메모를 함께 전달한다.
+
    #### PHASE 3 진입 전: 검증 가이드 생성 (필수)
 
    verifier를 호출하기 전에 main이 아래 형식의 **검증 가이드**를 직접 생성한다. main은 이미 명세서·계획 리포트·coder 보고를 보유하고 있으므로, 추가 파일 읽기 없이 인라인으로 추출한다.
@@ -208,10 +217,16 @@ Recommended Model : Claude Opus
 
    PHASE 3 검증이 통과되면 아래를 하나의 완료 단계로 모두 수행한다. 문서 생성을 빠뜨리지 않는다.
 
-   a. **컴파일 검증** (검증 통과 후 추가 확인)
-      - using 구문 누락, 오타, 네임스페이스 불일치 등 명백한 컴파일 에러를 점검한다.
-      - 새로 생성한 클래스가 기존 코드에서 올바르게 참조되는지 확인한다.
-      - Unity 에디터 실행 없이 확인 가능한 범위에서 검증한다.
+   a. **컴파일 검증** (검증 통과 후 최종 확인) — Unity MCP Bridge 적용
+
+      📄 참조: [`.claude/skills/_shared/unity-mcp-bridge.md`](../_shared/unity-mcp-bridge.md)
+
+      - **MCP 연결 시 (§4-1 컴파일 게이트)**:
+        - `refresh_unity` → `manage_editor(get_state)` 폴링 → `read_console(types:["Error"])` 0건 확인
+        - 사전 점검 이후 추가 변경이 있었으므로 최종 게이트로 한 번 더 수행
+      - **MCP 미연결 시**:
+        - using/네임스페이스 등 정적 점검만 수행
+        - plan 문서 안내 영역에 ⚠️ "UnityMCP 미연결 — 사용자가 Unity 에디터에서 컴파일 직접 확인 필요" 명시
 
    b. **plan 문서 생성** (필수)
       - 명세서 파일명에서 `.md` 확장자를 제거한 이름을 `{specBase}`로 사용한다.

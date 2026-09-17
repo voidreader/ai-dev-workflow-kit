@@ -14,7 +14,7 @@
 ```
 common/      스택 무관 범용 워크플로우 (skills/, agents/)
 flutter/     Flutter 전용 (skills/, agents/)
-unity/       Unity 전용 (skills/, agents/)
+unity/       Unity 전용 (skills/, agents/, hooks/)
 nextjs/      Next.js 전용 (skills/, hooks/)
 backend/     Node.js/NestJS 전용 (skills/, agents/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
