@@ -97,6 +97,22 @@ Recommended Model : Claude Opus
 
    구현 계획서의 "실행 순서"에 따라 coder 에이전트를 Agent()로 호출한다.
 
+   **모델 선택:**
+
+   planner가 각 TASK에 부여한 `추천 모델`을 Agent 호출 시 `model` 파라미터로 그대로 전달한다.
+
+   - `integration` 복잡도 → `model: "sonnet"` — 기존 패턴을 따라가는 구현 (대부분의 태스크)
+   - `architecture` 복잡도 → `model: "opus"` — 새 SaveData 스키마·마이그레이션, 비동기 로딩 순서,
+     씬 전환 중 상태 보존, Manager 의존 재정리, 동시성·생명주기 얽힘
+
+   planner의 추천이 의심스러우면 **한 단계 위로 올린다.** Unity 규칙 위반(라이프사이클 순서,
+   Fake Null, GetComponent 캐싱)은 컴파일을 통과하고 런타임에야 드러나므로, 약한 모델로
+   재작업하는 비용이 상위 모델 한 번 쓰는 비용보다 크다.
+
+   planner·verifier의 모델은 각 에이전트 frontmatter의 기본값(opus)을 사용한다 (override 없음).
+   verifier는 명세 대조뿐 아니라 Fake Null 판정·호환성 추적·품질 검증까지 맡고, Unity
+   파이프라인에는 그 뒤에 별도 2단계 리뷰어가 없으므로 등급을 내리지 않는다.
+
    각 coder 호출 시 프롬프트에 포함할 내용:
    - 해당 태스크(TASK-n)의 상세 내용
    - 전체 구현 계획서 (컨텍스트 참조용)

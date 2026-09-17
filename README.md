@@ -120,7 +120,7 @@ UnityMCP 연결을 판정하고 컴파일 게이트를 돌릴 때 절차 번호�
 
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
-| implement-agent | planner→coder→verifier 파이프라인 조율 (TASK 적으면 main 경량 검증) | Opus |
+| implement-agent | planner→coder→verifier 파이프라인 조율. coder는 태스크 복잡도별 모델 배정(sonnet/opus), TASK 적으면 main 경량 검증 | Opus |
 | implement-spec | Unity 특화 명세 기반 구현 (컴파일 검증 게이트) | Opus |
 | spec-writer | 기획 문서 → Unity 개발 명세서 생성 | Opus |
 | finalize-feature | 기능 마무리 + 문서 갱신 + 커밋 (SaveData/매니저 체크리스트) | Sonnet |
@@ -216,7 +216,7 @@ UnityMCP 연결을 판정하고 컴파일 게이트를 돌릴 때 절차 번호�
 | 에이전트 | 설명 | 모델 |
 |---|---|---|
 | planner | 명세 분석 + 구현 계획서 작성 통합 단일 패스 | Opus |
-| coder | 계획서의 개별 태스크 구현 (Unity 규칙 스킬 preload) | Sonnet |
+| coder | 계획서의 개별 태스크 구현 (Unity 규칙 스킬 preload) | Sonnet / Opus (planner가 태스크 복잡도로 배정) |
 | verifier | 구현이 명세를 충족하는지 검증 | Opus |
 | unity-perf-reviewer | 핫패스(Update 계열) 성능 정적 검사 — LINQ·GetComponent·문자열 할당 등 6룰. 읽기 전용, **명시 호출 전용** | Sonnet |
 
