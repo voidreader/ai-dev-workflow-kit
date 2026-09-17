@@ -17,7 +17,8 @@
 #   3. implement-agent 어댑터를 flutter.md 만 남기고 정리 (backend/unity 제거)
 #   4. Codex 설치 시 spec-pipeline의 .claude/skills 경로를 .agents/skills 로 보정
 #   5. flame-rate-limit 훅 스크립트 복사 + settings 병합 안내 출력 (Phase A 전용)
-#   6. 전제조건(pubspec.yaml, CLAUDE.md) 점검 후 경고 출력
+#   6. 프로젝트 지침이 없으면 Flutter Superpowers 템플릿 설치
+#   7. 전제조건(pubspec.yaml) 점검 후 경고 출력
 #
 set -euo pipefail
 
@@ -64,12 +65,15 @@ if [[ "$PLATFORM" == "codex" ]]; then
   AGENTS_DIR="$TARGET/.codex/agents"
   HOOKS_DIR="$TARGET/.codex/hooks"
   AGENT_EXT="toml"
+  INSTRUCTIONS_FILE="$TARGET/AGENTS.md"
 else
   SKILLS_DIR="$TARGET/.claude/skills"
   AGENTS_DIR="$TARGET/.claude/agents"
   HOOKS_DIR="$TARGET/.claude/hooks"
   AGENT_EXT="md"
+  INSTRUCTIONS_FILE="$TARGET/CLAUDE.md"
 fi
+INSTRUCTIONS_TEMPLATE="$KIT_ROOT/flutter/templates/AGENTS.md"
 
 # --- 실행 헬퍼 (dry-run 지원) ---
 run() {
@@ -91,17 +95,17 @@ echo ""
 run "mkdir -p '$SKILLS_DIR' '$AGENTS_DIR' '$HOOKS_DIR'"
 
 # --- 2. 스킬 복사 (common + flutter) ---
-echo "[1/5] 스킬 복사 (동봉 protocol.md·game-gotchas.md·templates/ 포함)"
+echo "[1/6] 스킬 복사 (동봉 protocol.md·game-gotchas.md·templates/ 포함)"
 run "cp -R '$KIT_ROOT/common/skills/.' '$SKILLS_DIR/'"
 run "cp -R '$KIT_ROOT/flutter/skills/.' '$SKILLS_DIR/'"
 
 # --- 3. 에이전트 복사 (common + flutter, 플랫폼 확장자) ---
-echo "[2/5] 에이전트 복사 (*.$AGENT_EXT)"
+echo "[2/6] 에이전트 복사 (*.$AGENT_EXT)"
 run "cp '$KIT_ROOT/common/agents/'*.$AGENT_EXT '$AGENTS_DIR/' 2>/dev/null || true"
 run "cp '$KIT_ROOT/flutter/agents/'*.$AGENT_EXT '$AGENTS_DIR/' 2>/dev/null || true"
 
 # --- 4. 어댑터 정리: flutter.md 만 남긴다 ---
-echo "[3/5] implement-agent 어댑터 정리 (flutter만 유지)"
+echo "[3/6] implement-agent 어댑터 정리 (flutter만 유지)"
 ADAPTERS_DIR="$SKILLS_DIR/implement-agent/adapters"
 for stack in backend unity; do
   if [[ -f "$ADAPTERS_DIR/$stack.md" ]]; then
@@ -119,20 +123,26 @@ if [[ "$PLATFORM" == "codex" ]]; then
 fi
 
 # --- 6. flame-rate-limit 훅 설치 (Phase A 전용) ---
-echo "[4/5] flame-rate-limit 훅 스크립트 복사"
+echo "[4/6] flame-rate-limit 훅 스크립트 복사"
 run "cp '$KIT_ROOT/flutter/hooks/flame-rate-limit/flame-rate-limit.sh' '$HOOKS_DIR/flame-rate-limit.sh'"
 run "chmod +x '$HOOKS_DIR/flame-rate-limit.sh'"
 
-# --- 7. 전제조건 점검 (경고만, 비차단) ---
-echo "[5/5] 전제조건 점검"
+# --- 7. 프로젝트 지침 설치: 기존 파일은 보존한다 ---
+echo "[5/6] Flutter Superpowers 프로젝트 지침"
+if [[ -f "$TARGET/CLAUDE.md" || -f "$TARGET/AGENTS.md" ]]; then
+  echo "  ✓ 기존 지침을 유지합니다. 필요하면 다음 템플릿을 수동 병합하세요."
+  echo "    $INSTRUCTIONS_TEMPLATE"
+else
+  run "cp '$INSTRUCTIONS_TEMPLATE' '$INSTRUCTIONS_FILE'"
+  echo "  ✓ 프로젝트 지침 설치 대상: $INSTRUCTIONS_FILE"
+fi
+
+# --- 8. 전제조건 점검 (경고만, 비차단) ---
+echo "[6/6] 전제조건 점검"
 WARN=0
 if [[ ! -f "$TARGET/pubspec.yaml" ]]; then
   echo "  ⚠ pubspec.yaml 이 없습니다. Flutter 프로젝트가 맞는지 확인하세요."
   echo "    (flame-harness Phase A는 새 프로젝트를 생성하므로, 빈 작업 디렉토리에서 시작해도 됩니다.)"
-  WARN=1
-fi
-if [[ ! -f "$TARGET/CLAUDE.md" && ! -f "$TARGET/AGENTS.md" ]]; then
-  echo "  ⚠ CLAUDE.md / AGENTS.md 가 없습니다. spec-writer·coder가 아키텍처 섹션을 참조합니다."
   WARN=1
 fi
 [[ "$WARN" == "0" ]] && echo "  ✓ 점검 통과"
