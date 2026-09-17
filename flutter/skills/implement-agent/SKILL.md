@@ -54,7 +54,7 @@ Recommended Model : Claude Opus
 
    아래 PHASE를 순서대로 직접 실행한다. 어떤 PHASE도 건너뛰지 않는다.
 
-   ### PHASE 1: 계획 수립 (analyzer + architect 통합)
+   ### PHASE 1: 계획 수립 (분석 + 설계 단일 패스)
 
    planner 에이전트를 Agent()로 호출한다.
 

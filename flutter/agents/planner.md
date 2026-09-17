@@ -2,7 +2,7 @@
 name: planner
 description: >
   작업 명세서를 분석하고 기존 프로젝트 구조를 파악하여, 분석 결과와 구체적인 구현 계획을
-  하나의 통합 리포트로 생성한다. analyzer와 architect를 단일 패스로 결합한 에이전트.
+  하나의 통합 리포트로 생성한다. 분석과 설계를 단일 패스로 수행한다.
 tools: Read, Grep, Glob, Bash
 model: opus
 ---

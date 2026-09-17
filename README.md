@@ -17,8 +17,8 @@ Next.js 기반 `AnonymousMessageWeb`에서 가져온 디자인 SSOT 워크플로
 
 ```
 common/      스택 무관 범용 워크플로우 (skills/, agents/)
-flutter/     Flutter 전용 (skills/, agents/)
-unity/       Unity 전용 (skills/, agents/)
+flutter/     Flutter 전용 (skills/, agents/, templates/)
+unity/       Unity 전용 (skills/, agents/, hooks/)
 nextjs/      Next.js 전용 (skills/, hooks/)
 backend/     Node.js/NestJS 전용 (skills/, agents/)
 examples/    특정 프로젝트에 종속된 참고용 스킬 (재사용보다 레퍼런스)
@@ -50,6 +50,8 @@ docs/        설계·계획 문서
 | spec-pipeline | spec-writer → verify-spec 오케스트레이션 (런타임에 배포된 스택 버전 사용) | Sonnet |
 | verify-spec | 명세서가 기획 의도를 반영했는지 5개 항목 검증 | Opus |
 | docs-writer | 문서 작성·검토·편집 | Sonnet |
+| design-review | 게임 기획서의 완성도·내부 일관성·구현 가능성 검토 (읽기 전용, 8개 섹션 체크리스트) | Opus |
+| docs-optimization | 비대해진 에이전트 문서(CLAUDE.md·rules) 정리 — 죽은 심볼·이력·배치 이탈 후보 검사(`scan.py`) 후 승인분만 반영 | Opus |
 | merge-changelog | changelog fragment 병합 → CHANGELOG.md | Sonnet |
 | milestone-runner | 설정 주입형 N단계 체크포인트 파이프라인 러너 (`pipeline.config.md`로 단계 정의, 상태파일 재개) | Opus |
 | google-sheets-safe-edit | Google Sheets write 도구 호출 전 백업·프리뷰·승인 게이트 | Sonnet |
@@ -112,6 +114,10 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 스킬이다. Unity 특화(컴파일 검증·Addressable·SaveData·매니저 계층 등) 내용을 담은
 별도 버전을 여기 둔다. 동명 스킬 네이밍 규칙(아래) 참고.
 
+`skills/_shared/unity-mcp-bridge.md`는 스킬이 아니라 **공용 참조 문서**다 — 위 스킬들이
+UnityMCP 연결을 판정하고 컴파일 게이트를 돌릴 때 절차 번호로 인용한다(`§4-1` 등).
+스킬과 같은 상대 위치(`skills/_shared/`)에 함께 설치해야 링크가 맞는다.
+
 | 스킬 | 설명 | 권장 모델 |
 |---|---|---|
 | implement-agent | planner→coder→verifier 파이프라인 조율 (TASK 적으면 main 경량 검증) | Opus |
@@ -124,6 +130,7 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | unity-refactor | 모듈 경계·SOLID·디커플링 등 아키텍처 리팩토링 어드바이저 | — |
 | unity-script-rule | 라이프사이클·GetComponent 캐싱·물리 타이밍·Fake Null 실수 방지 | — |
 | error-handling | Unity C# 에러 처리·방어적 코딩·로깅 규칙 (참조) | — |
+| unity-ui-architecture | 세로뷰 uGUI 구조 기준 — 루트 Canvas 계층 분리·1080 기준·SafeArea·프리팹 자립 (참조 코드 동봉) | — |
 | unity-ugui-ui | UGUI(UI_View/UI_Popup) 기반 UI 신규 생성·수정 | — |
 | figma-to-ugui | Figma 레이어 → UGUI(UI_View/UI_Popup + Enum 바인딩) 변환 | — |
 | automate-unity-task | unity_tasks.md → Unity Editor 프리팹 자동 생성 스크립트 작성 | Opus |
@@ -167,13 +174,13 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 ## 에이전트 인덱스
 
 각 에이전트는 Claude용 `.md`와 Codex용 `.toml` 두 버전이 같은 폴더에 함께 있다
-(예: `analyzer.md` + `analyzer.toml`). 아래 표는 역할 기준이며 두 형식에 공통이다.
+(예: `coder.md` + `coder.toml`). 아래 표는 역할 기준이며 두 형식에 공통이다.
 
 ### common/agents
 
-`analyzer`/`architect`는 내부 예시가 스택 종속이라 `flutter/agents`·`unity/agents`에
-있다. 아래 에이전트는 `implement-agent` 스킬의 골격 파이프라인을 구성하는 스택 중립
-버전이다 (스택별 세부 동작은 어댑터가 주입).
+아래 에이전트는 `implement-agent` 스킬의 골격 파이프라인을 구성하는 스택 중립
+버전이다 (스택별 세부 동작은 어댑터가 주입). 스택별 예시가 필요한 버전은
+`flutter/agents`·`unity/agents`에 있다.
 
 | 에이전트 | 설명 | 모델 |
 |---|---|---|
@@ -183,15 +190,13 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 
 ### flutter/agents
 
-`analyzer`~`verifier`는 같은 역할의 Unity 버전이 `unity/`에도 있는 동명 스택별
+`planner`~`verifier`는 같은 역할의 Unity 버전이 `unity/`에도 있는 동명 스택별
 에이전트다 (내부 예시가 Flutter/Dart — Riverpod·pubspec·freezed).
 
 | 에이전트 | 설명 | 모델 |
 |---|---|---|
-| analyzer | 명세 분석 + Flutter 프로젝트 구조 파악 리포트 | Sonnet |
-| architect | 분석 리포트 기반 구현 계획서 작성 | Opus |
+| planner | 명세 분석 + 구현 계획서 작성 통합 단일 패스 | Opus |
 | coder | 계획서의 개별 태스크 구현 | Sonnet |
-| planner | analyzer + architect 통합 단일 패스 | Opus |
 | verifier | 구현이 명세를 충족하는지 검증 | Opus |
 | flutter-reviewer | Flutter/Dart 코드 품질 검증 (읽기 전용) | Opus |
 | dart-build-resolver | Dart 빌드·정적분석·의존성 에러 해결 | Sonnet |
@@ -203,18 +208,17 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 
 ### unity/agents
 
-`flutter/agents`의 `analyzer`~`verifier`와 역할은 같지만 내부 예시가 Unity/C#(Unity
+`flutter/agents`의 `planner`~`verifier`와 역할은 같지만 내부 예시가 Unity/C#(Unity
 버전·렌더 파이프라인, SaveData, 매니저 계층 등)으로 작성된 버전이다. `coder`는
-`error-handling`·`unity-script-rule` 스킬을 preload한다. Codex `.toml`은 `planner`를
-제외한 4종이 있다.
+`error-handling`·`unity-script-rule` 스킬을 preload한다. Claude `.md`와 Codex `.toml`
+모두 4종을 갖추고 있다.
 
 | 에이전트 | 설명 | 모델 |
 |---|---|---|
-| analyzer | 명세 분석 + Unity 프로젝트 구조 파악 리포트 | Sonnet |
-| architect | 분석 리포트 기반 구현 계획서 작성 | Opus |
+| planner | 명세 분석 + 구현 계획서 작성 통합 단일 패스 | Opus |
 | coder | 계획서의 개별 태스크 구현 (Unity 규칙 스킬 preload) | Sonnet |
-| planner | analyzer + architect 통합 단일 패스 (`.md`만 존재) | Opus |
 | verifier | 구현이 명세를 충족하는지 검증 | Opus |
+| unity-perf-reviewer | 핫패스(Update 계열) 성능 정적 검사 — LINQ·GetComponent·문자열 할당 등 6룰. 읽기 전용, **명시 호출 전용** | Sonnet |
 
 ### backend/agents
 
@@ -240,6 +244,16 @@ Unity 버전이 `unity/`에도 있는 동명 스택별 스킬이다 (동명 스�
 | 훅 | 설명 | 플랫폼 |
 |---|---|---|
 | flame-rate-limit | flame-harness Phase A가 rate limit(429)에 걸리면 `state.md`를 paused로 표시 (Phase A 전용, `flame-harness-resume`과 짝) | Claude + Codex |
+
+### unity/hooks
+
+| 훅 | 설명 | 플랫폼 |
+|---|---|---|
+| unity-pattern-guard | Unity 런타임 `.cs` 편집 시 금지 패턴 차단 — `Resources.Load`·`Camera.main`·`GameObject.Find`·`transform.Find`·코루틴(차단 5종) + Fake Null·Instantiate·TriggerStay(경고 3종). `unity-script-rule` 스킬과 짝 | Claude + Codex |
+
+`unity-pattern-guard`는 **설치 후 `config.py`의 검사 범위(`SCOPE_MARKER`)를 프로젝트
+게임 코드 루트로 좁혀야 한다** — 기본값 `Assets/`는 임포트한 에셋 스토어 코드까지
+검사 대상에 넣는다. pytest 스위트가 동봉되어 설정을 바꾼 뒤 바로 검증할 수 있다.
 
 ## 동명 스킬 네이밍 규칙
 
@@ -294,8 +308,13 @@ scripts/install-backend.sh --dry-run <대상-프로젝트-경로>
 ### flutter 설치 스크립트
 
 flutter는 common+flutter 스킬·에이전트 복사 + 어댑터 정리(flutter만 유지) +
-flame-rate-limit 훅 스크립트 복사 + 전제조건 점검을 한 번에 해주는 스크립트가 있다.
+flame-rate-limit 훅 스크립트 복사 + 프로젝트 지침 설치 + 전제조건 점검을 한 번에 해주는 스크립트가 있다.
 flame-harness의 동봉 리소스(`protocol.md`·`game-gotchas.md`·각 스킬의 `templates/`)도 함께 복사된다.
+
+프로젝트에 `AGENTS.md`와 `CLAUDE.md`가 모두 없으면
+[`flutter/templates/AGENTS.md`](flutter/templates/AGENTS.md)의 Flutter Superpowers 지침을
+Codex는 `AGENTS.md`, Claude는 `CLAUDE.md`로 설치한다. 기존 지침 파일이 하나라도 있으면
+덮어쓰지 않고 템플릿 경로만 안내하므로 필요한 항목을 수동으로 병합한다.
 
 ```bash
 # Claude 레이아웃(.claude/)으로 설치
@@ -316,6 +335,7 @@ hooks 블록을 대상 프로젝트 설정에 병합한다(스크립트가 안�
 ```bash
 bash scripts/validate-fastlane.sh   # ship-build fastlane 템플릿 ruby 문법 검증
 bash scripts/test-hook.sh           # flame-rate-limit 훅 동작 검증
+bash scripts/test-install-flutter.sh # 지침 설치·기존 파일 보존·dry-run 검증
 ```
 
 ## 향후 계획
