@@ -63,9 +63,13 @@ Unity 런타임 스크립트에서 **자주 반복되는 금지 패턴을 편집
 | `RESOURCE_MANAGER` | `"프로젝트 리소스 매니저"` | `resources-load` 위반 메시지에 실을 대안 이름 (예: `"Global.ResourceMgr"`) |
 | `ASYNC_STYLE` | `"UniTask 또는 async/await(Awaitable)"` | `coroutine` 위반의 대안 |
 | `POOLING_HINT` | `"오브젝트 풀"` | `instantiate-destroy` 경고의 대안 |
+| `SEVERITY_OVERRIDES` | `{}` | 룰 id → `"block"`/`"warn"`. **`rules.py` 를 고치지 않고** 차단/경고를 조정한다. 없는 id 나 잘못된 값은 즉시 예외 |
 
 `SCOPE_MARKER`를 프로젝트 게임 코드 루트로 좁히는 것이 가장 중요하다 — 기본값 `Assets/`는
 임포트한 에셋 스토어 코드까지 검사 대상에 넣는다.
+
+**심각도만 바꾸려면** `rules.py` 가 아니라 `config.py` 의 `SEVERITY_OVERRIDES` 를 쓴다 —
+룰 목록을 포크하지 않아야 kit 업데이트를 그대로 받을 수 있다.
 
 **룰 자체를 늘리거나 줄이려면** `rules.py`의 `BLOCK_RULES`/`WARN_RULES`를 고치고,
 `tests/test_rules.py`의 개수 단언(`test_block_rule_count`·`test_warn_rule_count`)을

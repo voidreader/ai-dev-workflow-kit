@@ -21,3 +21,12 @@ EXCLUDED_SEGMENTS = ("/Editor/", "/Editor.")
 RESOURCE_MANAGER = "프로젝트 리소스 매니저"            # 예) "Global.ResourceMgr"
 ASYNC_STYLE = "UniTask 또는 async/await(Awaitable)"     # 예) "UniTask"
 POOLING_HINT = "오브젝트 풀"                            # 예) "Global.EffectMgr / 도메인별 전용 풀"
+
+# 룰 심각도 덮어쓰기 — 룰 id → "block" | "warn".
+# rules.py 를 고치지 않고 프로젝트 사정에 맞춰 차단/경고를 조정한다.
+# 빈 딕셔너리면 rules.py 기본값을 그대로 쓴다.
+#   예) 레거시 코드가 이미 코루틴을 쓰고 있어 당장 걷어낼 수 없는 프로젝트:
+#       {"coroutine": "warn"}
+# 존재하지 않는 룰 id 나 "block"/"warn" 이 아닌 값을 넣으면 훅이 즉시 실패한다 —
+# 오타가 조용히 무시되면 가드가 꺼진 줄 모르게 되기 때문이다.
+SEVERITY_OVERRIDES = {}
