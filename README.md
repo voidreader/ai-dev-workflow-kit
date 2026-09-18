@@ -330,15 +330,49 @@ scripts/install-flutter.sh --dry-run <대상-프로젝트-경로>
 flame-rate-limit 훅을 켜려면 `flutter/hooks/flame-rate-limit/install.<platform>.json`의
 hooks 블록을 대상 프로젝트 설정에 병합한다(스크립트가 안내를 출력).
 
+### unity 설치 스크립트
+
+unity는 common+unity 스킬·에이전트 복사 + 제외 항목 정리 + 훅 복사 + 산출물 경로
+치환 + 전제조건 점검을 한 번에 해주는 스크립트가 있다.
+
+`--both`는 **스킬 실체를 `.claude/skills` 한 벌만 두고 `.agents/skills`를 심링크로
+건다.** 두 벌이 갈라지지 않고, Codex 전용 경로 보정(`spec-pipeline`)도 필요 없어진다.
+
+`common/skills`에서 두 개를 제외한다 — `implement-agent`는 unity 버전이 어댑터를
+쓰지 않는 자립형이라 섞이면 읽히지 않는 `adapters/` 잔재가 남고,
+`google-sheets-safe-edit`는 Unity 프로젝트와 무관하다.
+
+```bash
+# Claude 레이아웃(.claude/)으로 설치
+scripts/install-unity.sh <대상-프로젝트-경로>
+
+# Claude + Codex 둘 다 (스킬 한 벌 + 심링크)
+scripts/install-unity.sh --both <대상-프로젝트-경로>
+
+# 산출물 루트를 프로젝트 규약에 맞춘다 (기본값은 kit 원본 Docs)
+scripts/install-unity.sh --both --docs-root docs/workflow <대상-프로젝트-경로>
+
+# 무엇을 복사할지 먼저 확인 (변경 없음)
+scripts/install-unity.sh --dry-run <대상-프로젝트-경로>
+```
+
+파일 복사만 하며 커밋·push는 하지 않는다. 설치 후 두 가지를 손으로 마무리한다:
+
+1. `unity/hooks/unity-pattern-guard/install.<platform>.json`의 hooks 블록을 대상
+   프로젝트 설정(`.claude/settings.json` · `.codex/hooks.json`)에 병합
+2. 훅 `config.py`의 `SCOPE_MARKER`·`EXCLUDED_SEGMENTS`·`SEVERITY_OVERRIDES`를
+   프로젝트에 맞게 좁히기 — 기본값은 범용값이라 서드파티 에셋까지 검사한다
+
 ### 검증 스크립트
 
 ```bash
 bash scripts/validate-fastlane.sh   # ship-build fastlane 템플릿 ruby 문법 검증
 bash scripts/test-hook.sh           # flame-rate-limit 훅 동작 검증
 bash scripts/test-install-flutter.sh # 지침 설치·기존 파일 보존·dry-run 검증
+bash scripts/test-install-unity.sh  # unity 설치 레이아웃·경로 치환 검증
 ```
 
 ## 향후 계획
 
 - Next.js 스킬·에이전트 추가 수집
-- 설치 스크립트를 스택 선택형(`install.sh <stack>`)으로 일반화 (현재 flutter·backend 제공)
+- 설치 스크립트를 스택 선택형(`install.sh <stack>`)으로 일반화 (현재 flutter·backend·unity 제공)
