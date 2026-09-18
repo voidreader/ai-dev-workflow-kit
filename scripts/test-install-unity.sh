@@ -71,4 +71,30 @@ mkdir -p "$notunity"
 bash "$INSTALLER" --both "$notunity" > "$TEST_ROOT/notunity.log"
 grep -q 'ProjectVersion.txt' "$TEST_ROOT/notunity.log" || fail "Unity 프로젝트 점검 경고가 없습니다."
 
+# --- docs-root 치환 ---
+docs="$TEST_ROOT/docs-root"
+make_unity_project "$docs"
+bash "$INSTALLER" --both --docs-root docs/workflow "$docs" > "$TEST_ROOT/docs.log"
+
+skills="$docs/.claude/skills"
+if grep -rn 'Docs/' "$skills" --include='*.md' >/dev/null 2>&1; then
+  grep -rn 'Docs/' "$skills" --include='*.md' | head >&2
+  fail "치환되지 않은 Docs/ 가 남았습니다."
+fi
+grep -q 'docs/workflow/plans' "$skills/plan-writer/SKILL.md" \
+  || fail "plan-writer 의 기획서 경로가 치환되지 않았습니다."
+grep -q 'docs/workflow/specs' "$skills/spec-writer/SKILL.md" \
+  || fail "spec-writer 의 명세서 경로가 치환되지 않았습니다."
+grep -q 'docs/workflow/changelog-fragments' "$skills/merge-changelog/SKILL.md" \
+  || fail "changelog-fragments 가 specs 아래로 잘못 들어갔습니다."
+grep -q 'docs/workflow/specs/Archive' "$skills/finalize-feature/SKILL.md" \
+  || fail "Archive 가 specs 아래로 가지 않았습니다."
+
+# 기본값(Docs)은 치환하지 않는다 — kit 원본을 다른 프로젝트에 그대로 설치할 수 있어야 한다.
+plain="$TEST_ROOT/plain"
+make_unity_project "$plain"
+bash "$INSTALLER" --claude "$plain" > "$TEST_ROOT/plain.log"
+grep -q 'Docs/plans' "$plain/.claude/skills/plan-writer/SKILL.md" \
+  || fail "기본값 설치에서 Docs/plans 가 보존되지 않았습니다."
+
 echo "PASS: Unity 설치 스크립트 동작"

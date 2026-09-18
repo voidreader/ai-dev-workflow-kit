@@ -88,9 +88,46 @@ run() {
   fi
 }
 
-# 산출물 경로 치환 — Task 4 에서 본체를 채운다. 지금은 스텁이다.
+# 산출물 경로 치환 — 순서가 중요하다.
+# Docs/ 는 kit 에서 단일 루트고 그 아래 여러 하위 영역이 갈린다. 맨몸 Docs/ 는
+# 명세서 자리라 specs/ 로 보내야 하므로, 이름 있는 하위 영역을 먼저 처리하고
+# catch-all 을 맨 마지막에 둔다.
 substitute_docs_root() {
-  echo "  (미구현 스텁 — Task 4)"
+  if [[ "$DOCS_ROOT" == "Docs" ]]; then
+    echo "  기본값(Docs) — 치환 없음"
+    return 0
+  fi
+
+  local -a exprs=(
+    "s#Docs/plans#${DOCS_ROOT}/plans#g"
+    "s#Docs/spec/#${DOCS_ROOT}/specs/#g"
+    "s#Docs/Archive#${DOCS_ROOT}/specs/Archive#g"
+    "s#Docs/changelog-fragments#${DOCS_ROOT}/changelog-fragments#g"
+    "s#Docs/CHANGELOG#${DOCS_ROOT}/CHANGELOG#g"
+    "s#Docs/milestone-runs#${DOCS_ROOT}/milestone-runs#g"
+    "s#Docs/content-design#${DOCS_ROOT}/content-design#g"
+    "s#Docs/balance-design#${DOCS_ROOT}/balance-design#g"
+    "s#Docs/content-data#${DOCS_ROOT}/content-data#g"
+    "s#Docs/roadmap#${DOCS_ROOT}/roadmap#g"
+    "s#Docs/#${DOCS_ROOT}/specs/#g"
+  )
+
+  local sed_args=()
+  local expr
+  for expr in "${exprs[@]}"; do
+    sed_args+=(-e "$expr")
+  done
+
+  echo "  Docs/ → ${DOCS_ROOT}/ (${#exprs[@]}개 규칙, catch-all 은 specs/)"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "  [dry-run] find '$SKILLS_DIR' -name '*.md' -exec sed -i '' ... {} +"
+    return 0
+  fi
+
+  # BSD sed(macOS)와 GNU sed 모두에서 동작하도록 -i 백업 확장자를 명시하고 지운다.
+  find "$SKILLS_DIR" -name '*.md' -type f -print0 \
+    | xargs -0 sed -i.kitbak "${sed_args[@]}"
+  find "$SKILLS_DIR" -name '*.md.kitbak' -type f -delete
 }
 
 echo "== ai-dev-workflow-kit · unity 설치 =="
