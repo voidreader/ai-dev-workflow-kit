@@ -97,4 +97,28 @@ bash "$INSTALLER" --claude "$plain" > "$TEST_ROOT/plain.log"
 grep -q 'Docs/plans' "$plain/.claude/skills/plan-writer/SKILL.md" \
   || fail "기본값 설치에서 Docs/plans 가 보존되지 않았습니다."
 
+# --- 재설치 시 config.py 보존 ---
+reinstall="$TEST_ROOT/reinstall"
+make_unity_project "$reinstall"
+bash "$INSTALLER" --claude "$reinstall" > "$TEST_ROOT/reinstall1.log"
+config_path="$reinstall/.claude/hooks/unity-pattern-guard/config.py"
+[[ -f "$config_path" ]] || fail "최초 설치에서 config.py 가 없습니다."
+printf '\nSEVERITY_OVERRIDES = {"resources-load": "warn"}\n' >> "$config_path"
+
+bash "$INSTALLER" --claude "$reinstall" > "$TEST_ROOT/reinstall2.log"
+grep -q 'SEVERITY_OVERRIDES = {"resources-load": "warn"}' "$config_path" \
+  || fail "재설치가 커스터마이즈된 config.py 를 보존하지 않았습니다."
+grep -q '기존 config.py 보존' "$TEST_ROOT/reinstall2.log" \
+  || fail "config.py 보존 안내 메시지가 출력되지 않았습니다."
+[[ -f "$reinstall/.claude/hooks/unity-pattern-guard/rules.py" ]] \
+  || fail "재설치 후 rules.py 가 없습니다(나머지 훅 파일은 갱신되어야 합니다)."
+
+# --- dry-run 재설치는 config.py 를 건드리지 않는다 ---
+before_hash="$(shasum "$config_path" | awk '{print $1}')"
+bash "$INSTALLER" --claude --dry-run "$reinstall" > "$TEST_ROOT/reinstall-dry.log"
+after_hash="$(shasum "$config_path" | awk '{print $1}')"
+if [[ "$before_hash" != "$after_hash" ]]; then fail "dry-run 재설치가 config.py 를 건드렸습니다."; fi
+grep -q 'dry-run' "$TEST_ROOT/reinstall-dry.log" \
+  || fail "dry-run 재설치 출력에 config.py 보존 예정 표시가 없습니다."
+
 echo "PASS: Unity 설치 스크립트 동작"

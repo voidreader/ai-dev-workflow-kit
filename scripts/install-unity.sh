@@ -181,12 +181,36 @@ if [[ "$PLATFORM" == "codex" ]]; then
 fi
 
 # --- 5. 훅 복사 ---
+# config.py 는 "설치 후 고치는 유일한 파일"(README)이라 재설치 때 지우면 안 된다.
+# rules.py·masker.py·check_patterns.py·tests/ 는 kit 갱신분으로 덮어써야 하므로
+# 훅 디렉토리 전체를 rm -rf 하되, 기존 config.py 가 있으면 미리 빼뒀다가 되살린다.
+CONFIG_PRESERVED=0
 echo "[4/6] unity-pattern-guard 훅 복사"
 for hook_dir in "${HOOK_TARGETS[@]}"; do
   run "mkdir -p '$hook_dir'"
+
+  existing_config="$hook_dir/unity-pattern-guard/config.py"
+  preserved_config=""
+  if [[ -f "$existing_config" ]]; then
+    if [[ "$DRY_RUN" == "1" ]]; then
+      echo "  [dry-run] 기존 config.py 보존 예정: $existing_config"
+    else
+      preserved_config="$(mktemp)"
+      cp "$existing_config" "$preserved_config"
+    fi
+  fi
+
   run "rm -rf '$hook_dir/unity-pattern-guard'"
   run "cp -R '$KIT_ROOT/unity/hooks/unity-pattern-guard' '$hook_dir/'"
   run "rm -rf '$hook_dir/unity-pattern-guard/.pytest_cache'"
+
+  if [[ -n "$preserved_config" ]]; then
+    cp "$preserved_config" "$existing_config"
+    rm -f "$preserved_config"
+    CONFIG_PRESERVED=1
+    echo "  ✓ 기존 config.py 보존함: $existing_config"
+    echo "    kit 기본값이 그 사이 바뀌었을 수 있으니 README 의 설정 표와 비교해 새 항목이 없는지 확인하세요."
+  fi
 done
 
 # --- 6. 산출물 경로 치환 ---
@@ -222,3 +246,12 @@ cat <<EOF
 
 이 스크립트는 파일 복사만 합니다. push·커밋은 하지 않습니다.
 EOF
+
+if [[ "$CONFIG_PRESERVED" == "1" ]]; then
+  cat <<EOF
+
+⚠ 기존 config.py 를 보존했습니다. rules.py 등 나머지 훅 파일은 kit 최신본으로
+  갱신됐습니다 — kit 기본값이 바뀌었다면 config.py 에 새로 생긴 항목이 없는지
+  README 의 설정 표와 비교해 확인하세요.
+EOF
+fi
