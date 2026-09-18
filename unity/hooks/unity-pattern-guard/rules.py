@@ -1,11 +1,16 @@
 """Block / Warn 룰 데이터 + 매처."""
 
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import re
 from typing import List
 
 from config import ASYNC_STYLE, POOLING_HINT, RESOURCE_MANAGER
+
+try:
+    from config import SEVERITY_OVERRIDES
+except ImportError:  # 훅 코드만 갱신하고 config.py 는 예전 것을 쓰는 설치본 호환
+    SEVERITY_OVERRIDES = {}
 
 
 @dataclass(frozen=True)
@@ -28,7 +33,7 @@ class Violation:
     suggestion: str
 
 
-BLOCK_RULES: List[Rule] = [
+_BASE_BLOCK_RULES: List[Rule] = [
     Rule(
         id="resources-load",
         severity="block",
@@ -68,7 +73,7 @@ BLOCK_RULES: List[Rule] = [
     ),
 ]
 
-WARN_RULES: List[Rule] = [
+_BASE_WARN_RULES: List[Rule] = [
     Rule(
         id="fake-null",
         severity="warn",
@@ -92,7 +97,31 @@ WARN_RULES: List[Rule] = [
     ),
 ]
 
-ALL_RULES = BLOCK_RULES + WARN_RULES
+_VALID_SEVERITIES = ("block", "warn")
+_BASE_RULES: List[Rule] = _BASE_BLOCK_RULES + _BASE_WARN_RULES
+_KNOWN_RULE_IDS = {rule.id for rule in _BASE_RULES}
+
+
+def _resolve_severity(rule: Rule) -> Rule:
+    severity = SEVERITY_OVERRIDES.get(rule.id, rule.severity)
+    if severity not in _VALID_SEVERITIES:
+        raise ValueError(
+            f"config.SEVERITY_OVERRIDES['{rule.id}'] = {severity!r} — "
+            f"허용값은 {_VALID_SEVERITIES} 뿐이다."
+        )
+    return rule if severity == rule.severity else replace(rule, severity=severity)
+
+
+_unknown_ids = sorted(set(SEVERITY_OVERRIDES) - _KNOWN_RULE_IDS)
+if _unknown_ids:
+    raise ValueError(
+        f"config.SEVERITY_OVERRIDES 에 존재하지 않는 룰 id: {_unknown_ids}. "
+        f"사용 가능한 id: {sorted(_KNOWN_RULE_IDS)}"
+    )
+
+ALL_RULES: List[Rule] = [_resolve_severity(rule) for rule in _BASE_RULES]
+BLOCK_RULES: List[Rule] = [rule for rule in ALL_RULES if rule.severity == "block"]
+WARN_RULES: List[Rule] = [rule for rule in ALL_RULES if rule.severity == "warn"]
 
 _ALLOW_RE = re.compile(r"//\s*claude-allow\s*:\s*([\w\-,\s]+)")
 
