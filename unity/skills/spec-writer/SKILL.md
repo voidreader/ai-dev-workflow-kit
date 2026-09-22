@@ -3,7 +3,7 @@ name: spec-writer
 description: 게임 기획 문서를 읽고 코드베이스를 탐색하여, implement-spec 또는 implement-agent에서 바로 사용할 수 있는 개발 명세서를 생성한다.
 ---
 
-Recommended Model : Claude Opus
+Recommended Model : Claude Opus / Codex gpt-5.6-sol (medium)
 ** 한국어 스타일 유지 **
 
 ## 언제 사용하나요?
@@ -48,7 +48,10 @@ Recommended Model : Claude Opus
 
 ## 2단계: 코드베이스 탐색
 
-기획 문서의 기능과 관련된 기존 코드를 탐색한다. Agent(subagent_type="Explore")를 활용하여 병렬로 탐색할 수 있다. 다음을 **모두 확인할 때까지** 탐색을 계속한다:
+기획 문서의 기능과 관련된 기존 코드를 탐색한다. Agent(subagent_type="Explore")를 활용하여 병렬로 탐색할 수 있다.
+Codex에서는 Explore 서브에이전트를 `spawn_agent`로 호출하며, 항상
+`model: gpt-5.6-sol`, `reasoning_effort: medium`을 함께 전달한다.
+다음 항목을 **모두 확인할 때까지** 탐색을 계속한다:
 
 1. 기능이 속하는 시스템 식별 (CLAUDE.md의 아키텍처 섹션 참조)
 2. 수정 대상 파일을 모두 Read로 열어 실제 구조를 확인했다
